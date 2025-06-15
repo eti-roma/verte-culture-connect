@@ -3,15 +3,19 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Leaf, Droplets, Thermometer, Calendar } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 export const Dashboard = () => {
-  const stats = [
-    { title: 'Productions Actives', value: '12', icon: Leaf, color: 'text-green-600' },
-    { title: 'Rendement Moyen', value: '8.5 kg/m²', icon: Droplets, color: 'text-blue-600' },
-    { title: 'Température Optimale', value: '22°C', icon: Thermometer, color: 'text-orange-600' },
-    { title: 'Prochaine Récolte', value: '3 jours', icon: Calendar, color: 'text-purple-600' },
+  const { data: stats, isLoading } = useDashboardStats();
+
+  const statsList = [
+    { title: 'Productions Actives', value: isLoading ? "..." : String(stats?.productionsActives ?? '–'), icon: Leaf, color: 'text-green-600' },
+    { title: 'Rendement Moyen', value: isLoading ? "..." : stats?.rendementMoyen ?? '–', icon: Droplets, color: 'text-blue-600' },
+    { title: 'Température Optimale', value: isLoading ? "..." : `${stats?.temperature ?? '–'}°C`, icon: Thermometer, color: 'text-orange-600' },
+    { title: 'Prochaine Récolte', value: isLoading ? "..." : stats?.prochaineRecolte ?? '–', icon: Calendar, color: 'text-purple-600' },
   ];
 
+  // Les "productions" restent en statique pour l'instant (à rendre dynamiques après)
   const productions = [
     { name: 'Orge - Lot A', progress: 85, days: 12, status: 'Excellente' },
     { name: 'Blé - Lot B', progress: 60, days: 8, status: 'Bonne' },
@@ -28,7 +32,7 @@ export const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {statsList.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
