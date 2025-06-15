@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +24,8 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [locating, setLocating] = useState(false);
+  // Ajout d’un nouveau champ pour l’email secondaire lors de l’inscription élève
+  const [secondaryEmail, setSecondaryEmail] = useState("");
 
   // Rediriger si déjà connecté
   useEffect(() => {
@@ -43,14 +44,13 @@ const Auth = () => {
         async position => {
           const { latitude, longitude } = position.coords;
           try {
+            // Fetch uniquement la ville
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`
             );
             const data = await response.json();
             const city = data.address?.city || data.address?.town || data.address?.village || "";
-            const region = data.address?.state || data.address?.county || "";
-            const locResult = [city, region].filter(Boolean).join(", ");
-            setLocation(locResult);
+            setLocation(city);
           } catch {
             // Erreur silencieuse
           }
@@ -92,9 +92,8 @@ const Auth = () => {
           throw new Error("Veuillez entrer un email ou numéro valide");
         }
       } else {
-        // INSCRIPTION
+        // INSCRIPTION — on ajoute secondaryEmail et ville
         if (isEmail(identity)) {
-          // Signup par email
           const { data, error } = await supabase.auth.signUp({
             email: identity,
             password,
@@ -109,6 +108,7 @@ const Auth = () => {
                 username,
                 phone,
                 location,
+                email: secondaryEmail ? secondaryEmail : null,
               });
             if (profileError) throw profileError;
           }
@@ -119,6 +119,7 @@ const Auth = () => {
           setUsername("");
           setPhone("");
           setLocation("");
+          setSecondaryEmail("");
         } else if (isPhone(identity)) {
           // Signup par téléphone (OTP)
           const phoneNorm = identity.replace(/\s/g, "");
@@ -136,6 +137,7 @@ const Auth = () => {
                 username,
                 phone: phoneNorm,
                 location,
+                email: secondaryEmail ? secondaryEmail : null,
               });
             if (profileError) throw profileError;
           }
@@ -149,6 +151,7 @@ const Auth = () => {
           setUsername("");
           setPhone("");
           setLocation("");
+          setSecondaryEmail("");
         } else {
           throw new Error("Veuillez entrer un email ou numéro valide");
         }
@@ -167,10 +170,11 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
       <form onSubmit={handleAuth} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6 animate-fade-in border">
         <h1 className="text-2xl font-bold text-center">{isLogin ? "Connexion" : "Inscription"}</h1>
+        {/* Identifiant principal: Téléphone OU email */}
         <Input
           required
           type="text"
-          placeholder="Email ou numéro de téléphone"
+          placeholder="Numéro de téléphone ou Email (pour se connecter)"
           autoComplete="username"
           value={identity}
           onChange={e => setIdentity(e.target.value)}
@@ -185,6 +189,7 @@ const Auth = () => {
           onChange={e => setPassword(e.target.value)}
           disabled={loading}
         />
+        {/* Pour inscription uniquement */}
         {!isLogin && (
           <>
             <Input
@@ -197,25 +202,28 @@ const Auth = () => {
               minLength={2}
               maxLength={32}
             />
-            {/* Ce champ n'est utile que si la personne inscrit pour l'autre identifiant, donc optionnel */}
+            {/* Email secondaire */}
             <Input
-              type="tel"
-              placeholder="Numéro de téléphone secondaire (optionnel)"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
+              type="email"
+              placeholder="Email secondaire (optionnel)"
+              value={secondaryEmail}
+              onChange={e => setSecondaryEmail(e.target.value)}
               disabled={loading}
-              pattern="^[0-9+\s]{6,20}$"
+              autoComplete="email"
             />
+            {/* Affichage de la ville, lecture seule */}
             <div className="relative">
               <Input
                 required
                 type="text"
-                placeholder="Localisation"
+                placeholder="Ville"
                 value={location}
-                onChange={e => setLocation(e.target.value)}
-                disabled={loading || locating}
+                onChange={() => {}}
+                readOnly
+                disabled
                 minLength={2}
                 maxLength={64}
+                className="bg-gray-100 cursor-not-allowed"
               />
               {locating && (
                 <span className="absolute right-3 top-2.5 text-xs text-emerald-700 animate-pulse">
