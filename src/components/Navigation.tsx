@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Leaf, BookOpen, MapPin, Camera, Users } from 'lucide-react';
+import { Leaf, BookOpen, MapPin, Camera, Users, BarChart3, Bug } from 'lucide-react';
 
 interface NavigationProps {
   activeTab: string;
@@ -14,6 +14,8 @@ export const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
     { id: 'formation', label: 'Formation', icon: BookOpen },
     { id: 'map', label: 'Producteurs', icon: MapPin },
     { id: 'ai-tracking', label: 'Suivi IA', icon: Camera },
+    { id: 'parameters', label: 'Paramètres', icon: BarChart3 },
+    { id: 'diseases', label: 'Maladies', icon: Bug },
     { id: 'community', label: 'Communauté', icon: Users },
   ];
 
