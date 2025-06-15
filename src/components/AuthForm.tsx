@@ -25,7 +25,6 @@ const AuthForm = ({
   const [identity, setIdentity] = useState(""); // Email ou téléphone
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [secondaryEmail, setSecondaryEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [locating, setLocating] = useState(false);
@@ -100,7 +99,6 @@ const AuthForm = ({
                 username,
                 phone,
                 location: city,
-                email: secondaryEmail ? secondaryEmail : null,
               });
             if (profileError) throw profileError;
           }
@@ -111,7 +109,6 @@ const AuthForm = ({
           setUsername("");
           setPhone("");
           setCity("");
-          setSecondaryEmail("");
         } else if (isPhone(identity)) {
           const phoneNorm = identity.replace(/\s/g, "");
           const { data, error } = await supabase.auth.signUp({
@@ -128,7 +125,6 @@ const AuthForm = ({
                 username,
                 phone: phoneNorm,
                 location: city,
-                email: secondaryEmail ? secondaryEmail : null,
               });
             if (profileError) throw profileError;
           }
@@ -142,7 +138,6 @@ const AuthForm = ({
           setUsername("");
           setPhone("");
           setCity("");
-          setSecondaryEmail("");
         } else {
           throw new Error("Veuillez entrer un email ou numéro valide");
         }
@@ -190,15 +185,7 @@ const AuthForm = ({
             minLength={2}
             maxLength={32}
           />
-          {/* Email secondaire */}
-          <Input
-            type="email"
-            placeholder="Email secondaire (optionnel)"
-            value={secondaryEmail}
-            onChange={e => setSecondaryEmail(e.target.value)}
-            disabled={loading}
-            autoComplete="email"
-          />
+          {/* Plus de champ Email secondaire */}
           {/* Ville présentée readonly */}
           <LocationInput value={city} locating={locating} />
         </>
