@@ -6,11 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+function isPhone(value: string) {
+  // Gère les formats +33 6 12 34 56 78 ou 0612345678
+  return /^((\+?\d{1,3})?\s?\d{6,20})$/.test(value.replace(/\s/g, ""));
+}
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
+  const [identity, setIdentity] = useState(""); // Email ou téléphone
   const [password, setPassword] = useState("");
-  // Nouveaux champs pour inscription
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
@@ -36,19 +43,16 @@ const Auth = () => {
         async position => {
           const { latitude, longitude } = position.coords;
           try {
-            // Utilisation de l'API OpenStreetMap Nominatim
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`
             );
             const data = await response.json();
-            // Extraction ville/région
             const city = data.address?.city || data.address?.town || data.address?.village || "";
             const region = data.address?.state || data.address?.county || "";
-            // Format
             const locResult = [city, region].filter(Boolean).join(", ");
             setLocation(locResult);
           } catch {
-            // Erreur silencieuse, ne rien faire
+            // Erreur silencieuse
           }
           setLocating(false);
         },
@@ -64,41 +68,90 @@ const Auth = () => {
     setLoading(true);
     try {
       if (isLogin) {
-        // Connexion classique
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast({ title: "Connexion réussie" });
-        navigate("/");
-      } else {
-        // Inscription: pas de emailRedirectTo
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        // Récupère l'id utilisateur et crée l'entrée profil
-        const userId = data.user?.id;
-        if (userId) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              id: userId,
-              username,
-              phone,
-              location,
-            });
-          if (profileError) throw profileError;
+        // CONNEXION
+        if (isEmail(identity)) {
+          // Email login
+          const { error } = await supabase.auth.signInWithPassword({
+            email: identity,
+            password,
+          });
+          if (error) throw error;
+          toast({ title: "Connexion réussie" });
+          navigate("/");
+        } else if (isPhone(identity)) {
+          // Phone login (OTP)
+          const { data, error } = await supabase.auth.signInWithOtp({
+            phone: identity.replace(/\s/g, "")
+          });
+          if (error) throw error;
+          toast({
+            title: "Vérification requise",
+            description: "Un code a été envoyé par SMS. (Vérification via OTP à ajouter si besoin)",
+          });
+        } else {
+          throw new Error("Veuillez entrer un email ou numéro valide");
         }
-        toast({ title: "Inscription réussie", description: "Tu peux maintenant te connecter." });
-        setIsLogin(true);
-        setEmail("");
-        setPassword("");
-        setUsername("");
-        setPhone("");
-        setLocation("");
+      } else {
+        // INSCRIPTION
+        if (isEmail(identity)) {
+          // Signup par email
+          const { data, error } = await supabase.auth.signUp({
+            email: identity,
+            password,
+          });
+          if (error) throw error;
+          const userId = data.user?.id;
+          if (userId) {
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .insert({
+                id: userId,
+                username,
+                phone,
+                location,
+              });
+            if (profileError) throw profileError;
+          }
+          toast({ title: "Inscription réussie", description: "Tu peux maintenant te connecter." });
+          setIsLogin(true);
+          setIdentity("");
+          setPassword("");
+          setUsername("");
+          setPhone("");
+          setLocation("");
+        } else if (isPhone(identity)) {
+          // Signup par téléphone (OTP)
+          const phoneNorm = identity.replace(/\s/g, "");
+          const { data, error } = await supabase.auth.signUp({
+            phone: phoneNorm,
+            password, // Un mot de passe est tout de même requis
+          });
+          if (error) throw error;
+          const userId = data.user?.id;
+          if (userId) {
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .insert({
+                id: userId,
+                username,
+                phone: phoneNorm,
+                location,
+              });
+            if (profileError) throw profileError;
+          }
+          toast({
+            title: "Vérification requise",
+            description: "Un code a été envoyé par SMS. (Vérification via OTP à ajouter si besoin)",
+          });
+          setIsLogin(true);
+          setIdentity("");
+          setPassword("");
+          setUsername("");
+          setPhone("");
+          setLocation("");
+        } else {
+          throw new Error("Veuillez entrer un email ou numéro valide");
+        }
       }
     } catch (error: any) {
       toast({
@@ -116,11 +169,11 @@ const Auth = () => {
         <h1 className="text-2xl font-bold text-center">{isLogin ? "Connexion" : "Inscription"}</h1>
         <Input
           required
-          type="email"
-          placeholder="Email"
+          type="text"
+          placeholder="Email ou numéro de téléphone"
           autoComplete="username"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+          value={identity}
+          onChange={e => setIdentity(e.target.value)}
           disabled={loading}
         />
         <Input
@@ -144,10 +197,10 @@ const Auth = () => {
               minLength={2}
               maxLength={32}
             />
+            {/* Ce champ n'est utile que si la personne inscrit pour l'autre identifiant, donc optionnel */}
             <Input
-              required
               type="tel"
-              placeholder="Numéro de téléphone"
+              placeholder="Numéro de téléphone secondaire (optionnel)"
               value={phone}
               onChange={e => setPhone(e.target.value)}
               disabled={loading}
@@ -164,7 +217,6 @@ const Auth = () => {
                 minLength={2}
                 maxLength={64}
               />
-              {/* Affichage de la détection en cours */}
               {locating && (
                 <span className="absolute right-3 top-2.5 text-xs text-emerald-700 animate-pulse">
                   Localisation…
