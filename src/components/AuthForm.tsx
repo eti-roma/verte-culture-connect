@@ -196,7 +196,7 @@ const AuthForm = ({
       <div className="text-center flex flex-col gap-1">
         <button
           type="button"
-          onClick={() => setIsLogin((v) => !v)}
+          onClick={() => setIsLogin(!isLogin)}
           className="text-sm text-emerald-700 underline hover:font-semibold"
           disabled={loading}
         >
