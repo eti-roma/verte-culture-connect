@@ -17,6 +17,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [locating, setLocating] = useState(false);
 
   // Rediriger si déjà connecté
   useEffect(() => {
@@ -26,6 +27,37 @@ const Auth = () => {
       }
     });
   }, [navigate]);
+
+  // Détection automatique de la localisation à l'inscription
+  useEffect(() => {
+    if (!isLogin && !location && "geolocation" in navigator) {
+      setLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        async position => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Utilisation de l'API OpenStreetMap Nominatim
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=fr`
+            );
+            const data = await response.json();
+            // Extraction ville/région
+            const city = data.address?.city || data.address?.town || data.address?.village || "";
+            const region = data.address?.state || data.address?.county || "";
+            // Format
+            const locResult = [city, region].filter(Boolean).join(", ");
+            setLocation(locResult);
+          } catch {
+            // Erreur silencieuse, ne rien faire
+          }
+          setLocating(false);
+        },
+        () => setLocating(false),
+        { enableHighAccuracy: true, timeout: 7000 }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLogin]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +132,6 @@ const Auth = () => {
           onChange={e => setPassword(e.target.value)}
           disabled={loading}
         />
-
         {!isLogin && (
           <>
             <Input
@@ -122,19 +153,29 @@ const Auth = () => {
               disabled={loading}
               pattern="^[0-9+\s]{6,20}$"
             />
-            <Input
-              required
-              type="text"
-              placeholder="Localisation"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              disabled={loading}
-              minLength={2}
-              maxLength={64}
-            />
+            <div className="relative">
+              <Input
+                required
+                type="text"
+                placeholder="Localisation"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                disabled={loading || locating}
+                minLength={2}
+                maxLength={64}
+              />
+              {/* Affichage de la détection en cours */}
+              {locating && (
+                <span className="absolute right-3 top-2.5 text-xs text-emerald-700 animate-pulse">
+                  Localisation…
+                </span>
+              )}
+            </div>
+            {(!("geolocation" in navigator)) && (
+              <div className="text-xs text-orange-500 pl-1">La détection automatique n’est pas possible sur ce navigateur.</div>
+            )}
           </>
         )}
-
         <Button className="w-full" type="submit" disabled={loading}>
           {loading ? "En cours..." : isLogin ? "Se connecter" : "S'inscrire"}
         </Button>
