@@ -10,6 +10,10 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Nouveaux champs pour inscription
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,6 +32,7 @@ const Auth = () => {
     setLoading(true);
     try {
       if (isLogin) {
+        // Connexion classique
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -36,19 +41,39 @@ const Auth = () => {
         toast({ title: "Connexion réussie" });
         navigate("/");
       } else {
-        const redirectUrl = `${window.location.origin}/`;
-        const { error } = await supabase.auth.signUp({
+        // Inscription: pas de emailRedirectTo
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: redirectUrl }
         });
         if (error) throw error;
-        toast({ title: "Inscription réussie", description: "Vérifie ta boîte mail pour confirmer ton compte." });
+        // Récupère l'id utilisateur et crée l'entrée profil
+        const userId = data.user?.id;
+        if (userId) {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: userId,
+              username,
+              phone,
+              location,
+            });
+          if (profileError) throw profileError;
+        }
+        toast({ title: "Inscription réussie", description: "Tu peux maintenant te connecter." });
         setIsLogin(true);
-        setEmail(""); setPassword("");
+        setEmail("");
+        setPassword("");
+        setUsername("");
+        setPhone("");
+        setLocation("");
       }
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message || "Erreur d’authentification", variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur d’authentification",
+        variant: "destructive"
+      });
     }
     setLoading(false);
   };
@@ -75,6 +100,41 @@ const Auth = () => {
           onChange={e => setPassword(e.target.value)}
           disabled={loading}
         />
+
+        {!isLogin && (
+          <>
+            <Input
+              required
+              type="text"
+              placeholder="Nom d’utilisateur"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              disabled={loading}
+              minLength={2}
+              maxLength={32}
+            />
+            <Input
+              required
+              type="tel"
+              placeholder="Numéro de téléphone"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              disabled={loading}
+              pattern="^[0-9+\s]{6,20}$"
+            />
+            <Input
+              required
+              type="text"
+              placeholder="Localisation"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              disabled={loading}
+              minLength={2}
+              maxLength={64}
+            />
+          </>
+        )}
+
         <Button className="w-full" type="submit" disabled={loading}>
           {loading ? "En cours..." : isLogin ? "Se connecter" : "S'inscrire"}
         </Button>

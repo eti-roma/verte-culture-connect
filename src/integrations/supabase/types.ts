@@ -321,6 +321,30 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          location?: string | null
+          phone?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       training_modules: {
         Row: {
           created_at: string
