@@ -8,9 +8,18 @@ import { AITracking } from '@/components/AITracking';
 import { Community } from '@/components/Community';
 import { CultureParameters } from '@/components/CultureParameters';
 import { DiseasesPests } from '@/components/DiseasesPests';
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const Index = () => {
+const Index = ({ user, session }: { user: any, session: any }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Déconnexion réussie" });
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -35,6 +44,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="w-full flex justify-end items-center px-4 pt-2">
+        <span className="text-xs text-muted-foreground mr-2">{user?.email}</span>
+        <Button size="sm" variant="outline" onClick={handleLogout}>
+          Se déconnecter
+        </Button>
+      </div>
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="container mx-auto px-4 py-6">
         {renderContent()}
