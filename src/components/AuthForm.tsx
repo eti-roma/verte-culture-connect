@@ -1,17 +1,10 @@
+
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import LocationInput from "./LocationInput";
-
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-function isPhone(value: string) {
-  // Formats : +33 6 12 34 56 78 ou 0612345678
-  return /^((\+?\d{1,3})?\s?\d{6,20})$/.test(value.replace(/\s/g, ""));
-}
+import ForgotPasswordForm from "./ForgotPasswordForm";
 
 const AuthForm = ({
   isLogin,
@@ -22,14 +15,15 @@ const AuthForm = ({
   setIsLogin: (b: boolean) => void;
   onSuccess: () => void;
 }) => {
-  const [identity, setIdentity] = useState(""); // Email ou téléphone
+  const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [locating, setLocating] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  
+  const { loading, signUp, signIn } = useAuth();
 
   // Détection de la localisation seulement pour inscription
   useEffect(() => {
@@ -58,103 +52,37 @@ const AuthForm = ({
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      if (isLogin) {
-        // CONNEXION
-        if (isEmail(identity)) {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: identity,
-            password,
-          });
-          if (error) throw error;
-          toast({ title: "Connexion réussie" });
-          onSuccess();
-        } else if (isPhone(identity)) {
-          const { data, error } = await supabase.auth.signInWithOtp({
-            phone: identity.replace(/\s/g, "")
-          });
-          if (error) throw error;
-          toast({
-            title: "Vérification requise",
-            description: "Un code a été envoyé par SMS. (Vérification via OTP à ajouter si besoin)",
-          });
-        } else {
-          throw new Error("Veuillez entrer un email ou numéro valide");
-        }
-      } else {
-        // INSCRIPTION
-        if (isEmail(identity)) {
-          const { data, error } = await supabase.auth.signUp({
-            email: identity,
-            password,
-          });
-          if (error) throw error;
-          const userId = data.user?.id;
-          if (userId) {
-            const { error: profileError } = await supabase
-              .from("profiles")
-              .insert({
-                id: userId,
-                username,
-                phone,
-                location: city,
-              });
-            if (profileError) throw profileError;
-          }
-          toast({ title: "Inscription réussie", description: "Tu peux maintenant te connecter." });
-          setIsLogin(true);
-          setIdentity("");
-          setPassword("");
-          setUsername("");
-          setPhone("");
-          setCity("");
-        } else if (isPhone(identity)) {
-          const phoneNorm = identity.replace(/\s/g, "");
-          const { data, error } = await supabase.auth.signUp({
-            phone: phoneNorm,
-            password,
-          });
-          if (error) throw error;
-          const userId = data.user?.id;
-          if (userId) {
-            const { error: profileError } = await supabase
-              .from("profiles")
-              .insert({
-                id: userId,
-                username,
-                phone: phoneNorm,
-                location: city,
-              });
-            if (profileError) throw profileError;
-          }
-          toast({
-            title: "Vérification requise",
-            description: "Un code a été envoyé par SMS. (Vérification via OTP à ajouter si besoin)",
-          });
-          setIsLogin(true);
-          setIdentity("");
-          setPassword("");
-          setUsername("");
-          setPhone("");
-          setCity("");
-        } else {
-          throw new Error("Veuillez entrer un email ou numéro valide");
-        }
-      }
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur d’authentification",
-        variant: "destructive"
-      });
+    
+    let result;
+    if (isLogin) {
+      result = await signIn(identity, password);
+    } else {
+      result = await signUp(identity, password, username, phone, city);
     }
-    setLoading(false);
+    
+    if (result.success) {
+      if (isLogin) {
+        onSuccess();
+      } else {
+        // Pour l'inscription, basculer vers la connexion
+        setIsLogin(true);
+        setIdentity("");
+        setPassword("");
+        setUsername("");
+        setPhone("");
+        setCity("");
+      }
+    }
   };
+
+  if (showForgotPassword) {
+    return <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <form onSubmit={handleAuth} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6 animate-fade-in border">
       <h1 className="text-2xl font-bold text-center">{isLogin ? "Connexion" : "Inscription"}</h1>
+      
       <Input
         required
         type="text"
@@ -164,6 +92,7 @@ const AuthForm = ({
         onChange={e => setIdentity(e.target.value)}
         disabled={loading}
       />
+      
       <Input
         required
         type="password"
@@ -173,27 +102,29 @@ const AuthForm = ({
         onChange={e => setPassword(e.target.value)}
         disabled={loading}
       />
+      
       {!isLogin && (
         <>
           <Input
             required
             type="text"
-            placeholder="Nom d’utilisateur"
+            placeholder="Nom d'utilisateur"
             value={username}
             onChange={e => setUsername(e.target.value)}
             disabled={loading}
             minLength={2}
             maxLength={32}
           />
-          {/* Plus de champ Email secondaire */}
-          {/* Ville présentée readonly */}
+          
           <LocationInput value={city} locating={locating} />
         </>
       )}
+      
       <Button className="w-full" type="submit" disabled={loading}>
         {loading ? "En cours..." : isLogin ? "Se connecter" : "S'inscrire"}
       </Button>
-      <div className="text-center flex flex-col gap-1">
+      
+      <div className="text-center flex flex-col gap-2">
         <button
           type="button"
           onClick={() => setIsLogin(!isLogin)}
@@ -202,6 +133,17 @@ const AuthForm = ({
         >
           {isLogin ? "Créer un compte" : "Déjà inscrit ? Connecte-toi"}
         </button>
+        
+        {isLogin && (
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-xs text-gray-600 underline hover:text-gray-800"
+            disabled={loading}
+          >
+            Mot de passe oublié ?
+          </button>
+        )}
       </div>
     </form>
   );
