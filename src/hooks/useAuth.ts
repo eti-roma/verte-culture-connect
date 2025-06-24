@@ -17,6 +17,9 @@ export const useAuth = () => {
         const { data, error } = await supabase.auth.signUp({
           email: identity,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`
+          }
         });
         if (error) throw error;
         
@@ -60,7 +63,7 @@ export const useAuth = () => {
           title: "Vérification requise",
           description: "Un code a été envoyé par SMS.",
         });
-        return { success: true };
+        return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
         throw new Error("Veuillez entrer un email ou numéro valide");
       }
@@ -89,8 +92,9 @@ export const useAuth = () => {
         toast({ title: "Connexion réussie" });
         return { success: true };
       } else if (isPhone(identity)) {
+        const phoneNorm = identity.replace(/\s/g, "");
         const { error } = await supabase.auth.signInWithOtp({
-          phone: identity.replace(/\s/g, "")
+          phone: phoneNorm
         });
         if (error) throw error;
         
@@ -98,7 +102,7 @@ export const useAuth = () => {
           title: "Vérification requise",
           description: "Un code a été envoyé par SMS.",
         });
-        return { success: true };
+        return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
         throw new Error("Veuillez entrer un email ou numéro valide");
       }
@@ -106,6 +110,30 @@ export const useAuth = () => {
       toast({
         title: "Erreur de connexion",
         description: error.message || "Erreur lors de la connexion",
+        variant: "destructive"
+      });
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOTP = async (phone: string, token: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token,
+        type: 'sms'
+      });
+      if (error) throw error;
+      
+      toast({ title: "Vérification réussie" });
+      return { success: true };
+    } catch (error: any) {
+      toast({
+        title: "Code incorrect",
+        description: "Le code saisi est invalide ou expiré.",
         variant: "destructive"
       });
       return { success: false, error: error.message };
@@ -143,6 +171,7 @@ export const useAuth = () => {
     loading,
     signUp,
     signIn,
+    verifyOTP,
     resetPassword,
     isEmail,
     isPhone,

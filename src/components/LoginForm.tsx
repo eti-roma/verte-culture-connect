@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import OTPVerification from "./OTPVerification";
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -13,16 +14,38 @@ interface LoginFormProps {
 const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormProps) => {
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
-  const { loading, signIn } = useAuth();
+  const [showOTP, setShowOTP] = useState(false);
+  const [otpPhone, setOtpPhone] = useState("");
+  const { loading, signIn, isPhone } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const result = await signIn(identity, password);
     if (result.success) {
-      onSuccess();
+      if (result.requiresVerification && result.phone) {
+        setOtpPhone(result.phone);
+        setShowOTP(true);
+      } else {
+        onSuccess();
+      }
     }
   };
+
+  const handleOTPSuccess = () => {
+    setShowOTP(false);
+    onSuccess();
+  };
+
+  if (showOTP) {
+    return (
+      <OTPVerification
+        phone={otpPhone}
+        onSuccess={handleOTPSuccess}
+        onBack={() => setShowOTP(false)}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6 animate-fade-in border">
@@ -38,18 +61,20 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
         disabled={loading}
       />
       
-      <Input
-        required
-        type="password"
-        placeholder="Mot de passe"
-        autoComplete="current-password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        disabled={loading}
-      />
+      {!isPhone(identity) && (
+        <Input
+          required
+          type="password"
+          placeholder="Mot de passe"
+          autoComplete="current-password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          disabled={loading}
+        />
+      )}
       
       <Button className="w-full" type="submit" disabled={loading}>
-        {loading ? "En cours..." : "Se connecter"}
+        {loading ? "En cours..." : isPhone(identity) ? "Envoyer SMS" : "Se connecter"}
       </Button>
       
       <div className="text-center flex flex-col gap-2">
@@ -62,14 +87,16 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
           Créer un compte
         </button>
         
-        <button
-          type="button"
-          onClick={onForgotPassword}
-          className="text-xs text-gray-600 underline hover:text-gray-800"
-          disabled={loading}
-        >
-          Mot de passe oublié ?
-        </button>
+        {!isPhone(identity) && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-xs text-gray-600 underline hover:text-gray-800"
+            disabled={loading}
+          >
+            Mot de passe oublié ?
+          </button>
+        )}
       </div>
     </form>
   );
