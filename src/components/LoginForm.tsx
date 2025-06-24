@@ -47,6 +47,8 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
     );
   }
 
+  const isPhoneInput = isPhone(identity);
+
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6 animate-fade-in border">
       <h1 className="text-2xl font-bold text-center">Connexion</h1>
@@ -61,7 +63,7 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
         disabled={loading}
       />
       
-      {!isPhone(identity) && (
+      {!isPhoneInput && (
         <Input
           required
           type="password"
@@ -73,8 +75,12 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
         />
       )}
       
-      <Button className="w-full" type="submit" disabled={loading}>
-        {loading ? "En cours..." : isPhone(identity) ? "Envoyer SMS" : "Se connecter"}
+      <Button 
+        className="w-full" 
+        type="submit" 
+        disabled={loading || !identity || (!isPhoneInput && !password)}
+      >
+        {loading ? "En cours..." : isPhoneInput ? "Envoyer SMS" : "Se connecter"}
       </Button>
       
       <div className="text-center flex flex-col gap-2">
@@ -87,7 +93,7 @@ const LoginForm = ({ onSuccess, onSwitchToSignup, onForgotPassword }: LoginFormP
           Créer un compte
         </button>
         
-        {!isPhone(identity) && (
+        {!isPhoneInput && (
           <button
             type="button"
             onClick={onForgotPassword}

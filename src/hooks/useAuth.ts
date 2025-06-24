@@ -8,7 +8,15 @@ export const useAuth = () => {
   const { toast } = useToast();
 
   const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  const isPhone = (value: string) => /^((\+?\d{1,3})?\s?\d{6,20})$/.test(value.replace(/\s/g, ""));
+  const isPhone = (value: string) => /^(\+33|0)[1-9](\d{8})$/.test(value.replace(/\s/g, ""));
+
+  const normalizePhone = (phone: string) => {
+    const cleaned = phone.replace(/\s/g, "");
+    if (cleaned.startsWith("0")) {
+      return "+33" + cleaned.substring(1);
+    }
+    return cleaned;
+  };
 
   const signUp = async (identity: string, password: string, username: string, phone: string, city: string) => {
     setLoading(true);
@@ -30,16 +38,19 @@ export const useAuth = () => {
             .insert({
               id: userId,
               username,
-              phone,
+              phone: isPhone(phone) ? normalizePhone(phone) : null,
               location: city,
             });
           if (profileError) throw profileError;
         }
         
-        toast({ title: "Inscription réussie", description: "Vérifie ton email pour confirmer ton compte." });
+        toast({ 
+          title: "Inscription réussie", 
+          description: "Vérifie ton email pour confirmer ton compte." 
+        });
         return { success: true };
       } else if (isPhone(identity)) {
-        const phoneNorm = identity.replace(/\s/g, "");
+        const phoneNorm = normalizePhone(identity);
         const { data, error } = await supabase.auth.signUp({
           phone: phoneNorm,
           password,
@@ -65,15 +76,27 @@ export const useAuth = () => {
         });
         return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
-        throw new Error("Veuillez entrer un email ou numéro valide");
+        throw new Error("Format invalide. Utilisez un email ou un numéro français (ex: 06 12 34 56 78)");
       }
     } catch (error: any) {
+      let errorMessage = "Erreur lors de l'inscription";
+      
+      if (error.message?.includes("User already registered")) {
+        errorMessage = "Ce compte existe déjà. Essayez de vous connecter.";
+      } else if (error.message?.includes("Invalid phone")) {
+        errorMessage = "Numéro de téléphone invalide. Utilisez le format français (ex: 06 12 34 56 78)";
+      } else if (error.message?.includes("Password")) {
+        errorMessage = "Le mot de passe doit contenir au moins 6 caractères.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erreur d'inscription",
-        description: error.message || "Erreur lors de l'inscription",
+        description: errorMessage,
         variant: "destructive"
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -92,7 +115,7 @@ export const useAuth = () => {
         toast({ title: "Connexion réussie" });
         return { success: true };
       } else if (isPhone(identity)) {
-        const phoneNorm = identity.replace(/\s/g, "");
+        const phoneNorm = normalizePhone(identity);
         const { error } = await supabase.auth.signInWithOtp({
           phone: phoneNorm
         });
@@ -104,15 +127,27 @@ export const useAuth = () => {
         });
         return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
-        throw new Error("Veuillez entrer un email ou numéro valide");
+        throw new Error("Format invalide. Utilisez un email ou un numéro français (ex: 06 12 34 56 78)");
       }
     } catch (error: any) {
+      let errorMessage = "Erreur lors de la connexion";
+      
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Email ou mot de passe incorrect.";
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Veuillez confirmer votre email avant de vous connecter.";
+      } else if (error.message?.includes("Invalid phone")) {
+        errorMessage = "Numéro de téléphone invalide. Utilisez le format français (ex: 06 12 34 56 78)";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erreur de connexion",
-        description: error.message || "Erreur lors de la connexion",
+        description: errorMessage,
         variant: "destructive"
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -131,12 +166,20 @@ export const useAuth = () => {
       toast({ title: "Vérification réussie" });
       return { success: true };
     } catch (error: any) {
+      let errorMessage = "Le code saisi est invalide ou expiré.";
+      
+      if (error.message?.includes("Token has expired")) {
+        errorMessage = "Le code a expiré. Demandez un nouveau code.";
+      } else if (error.message?.includes("Invalid token")) {
+        errorMessage = "Code incorrect. Vérifiez et réessayez.";
+      }
+
       toast({
         title: "Code incorrect",
-        description: "Le code saisi est invalide ou expiré.",
+        description: errorMessage,
         variant: "destructive"
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -156,12 +199,20 @@ export const useAuth = () => {
       });
       return { success: true };
     } catch (error: any) {
+      let errorMessage = "Erreur lors de l'envoi de l'email";
+      
+      if (error.message?.includes("Email not found")) {
+        errorMessage = "Aucun compte associé à cette adresse email.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Erreur",
-        description: error.message || "Erreur lors de l'envoi de l'email",
+        description: errorMessage,
         variant: "destructive"
       });
-      return { success: false, error: error.message };
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }

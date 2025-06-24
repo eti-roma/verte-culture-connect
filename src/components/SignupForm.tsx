@@ -57,12 +57,8 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         setOtpPhone(result.phone);
         setShowOTP(true);
       } else {
-        // Pour l'inscription par email, basculer vers la connexion
-        onSuccess();
-        setIdentity("");
-        setPassword("");
-        setUsername("");
-        setCity("");
+        // Pour l'inscription par email, on reste sur le formulaire mais on peut basculer vers login
+        onSwitchToLogin();
       }
     }
   };
@@ -70,10 +66,6 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
   const handleOTPSuccess = () => {
     setShowOTP(false);
     onSuccess();
-    setIdentity("");
-    setPassword("");
-    setUsername("");
-    setCity("");
   };
 
   if (showOTP) {
@@ -108,6 +100,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         value={password}
         onChange={e => setPassword(e.target.value)}
         disabled={loading}
+        minLength={6}
       />
       
       <Input
@@ -127,7 +120,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         locating={locating} 
       />
       
-      <Button className="w-full" type="submit" disabled={loading}>
+      <Button className="w-full" type="submit" disabled={loading || !identity || !password || !username || !city}>
         {loading ? "En cours..." : "S'inscrire"}
       </Button>
       
