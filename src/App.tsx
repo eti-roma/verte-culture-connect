@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -12,55 +12,55 @@ import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
-// Composant Route privée
+// Composant Route privée simplifié
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const [checking, setChecking] = useState(true);
-  const [isAuth, setIsAuth] = useState<boolean | null>(null);
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    let unsub: any;
-    (async () => {
-      // Place listener *before* checking session, important!
-      unsub = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuth(!!session?.user);
-        setChecking(false);
-      }).data?.subscription;
-      // Initial session check
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuth(!!session?.user);
-      setChecking(false);
-    })();
-    return () => {
-      if (unsub) unsub.unsubscribe();
+    // Vérifier la session actuelle
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    checkAuth();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (checking) {
-    return <div className="min-h-screen flex items-center justify-center bg-muted/20"><span>Vérification...</span></div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Vérification de la connexion...</p>
+        </div>
+      </div>
+    );
   }
-  if (!isAuth) return <Navigate to="/auth" state={{ from: location }} replace />;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
   return <>{children}</>;
 };
 
 const App = () => {
-  const [user, setUser] = useState<any>(null);
-  const [session, setSession] = useState<any>(null);
-
-  useEffect(() => {
-    // Listener comme précisé dans les best practices
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-    // Premier check de session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -69,10 +69,9 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            {/* Protection de la racine : tout l’app sauf /auth requiert connection */}
             <Route path="/" element={
               <PrivateRoute>
-                <Index user={user} session={session} />
+                <Index />
               </PrivateRoute>
             } />
             <Route path="*" element={<NotFound />} />

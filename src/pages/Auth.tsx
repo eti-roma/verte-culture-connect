@@ -15,11 +15,18 @@ const Auth = () => {
 
   // Rediriger si déjà connecté
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        navigate("/");
+    const checkAuthAndRedirect = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          navigate("/", { replace: true });
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
       }
-    });
+    };
+
+    checkAuthAndRedirect();
   }, [navigate]);
 
   // Gestion du mode reset password
@@ -29,7 +36,6 @@ const Auth = () => {
       const refreshToken = searchParams.get('refresh_token');
       
       if (accessToken && refreshToken) {
-        // L'utilisateur arrive depuis un lien de reset valide
         supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -45,7 +51,7 @@ const Auth = () => {
               title: "Connexion réussie",
               description: "Vous pouvez maintenant changer votre mot de passe dans les paramètres.",
             });
-            navigate("/");
+            navigate("/", { replace: true });
           }
         });
       } else {
@@ -58,12 +64,16 @@ const Auth = () => {
     }
   }, [mode, searchParams, navigate, toast]);
 
+  const handleAuthSuccess = () => {
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
       <AuthForm 
         isLogin={isLogin} 
         setIsLogin={setIsLogin} 
-        onSuccess={() => navigate("/")} 
+        onSuccess={handleAuthSuccess} 
       />
     </div>
   );
