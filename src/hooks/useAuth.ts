@@ -50,6 +50,7 @@ export const useAuth = () => {
         });
         return { success: true };
       } else if (isPhone(identity)) {
+        // Pour les téléphones, on utilise l'inscription classique avec mot de passe
         const phoneNorm = normalizePhone(identity);
         const { data, error } = await supabase.auth.signUp({
           phone: phoneNorm,
@@ -72,7 +73,7 @@ export const useAuth = () => {
         
         toast({
           title: "Vérification requise",
-          description: "Un code a été envoyé par SMS.",
+          description: "Un code a été envoyé par SMS pour confirmer ton compte.",
         });
         return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
@@ -116,16 +117,15 @@ export const useAuth = () => {
         return { success: true };
       } else if (isPhone(identity)) {
         const phoneNorm = normalizePhone(identity);
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: phoneNorm
+        // Correction : utiliser signInWithPassword pour les comptes avec mot de passe
+        const { error } = await supabase.auth.signInWithPassword({
+          phone: phoneNorm,
+          password,
         });
         if (error) throw error;
         
-        toast({
-          title: "Vérification requise",
-          description: "Un code a été envoyé par SMS.",
-        });
-        return { success: true, requiresVerification: true, phone: phoneNorm };
+        toast({ title: "Connexion réussie" });
+        return { success: true };
       } else {
         throw new Error("Format invalide. Utilisez un email ou un numéro français (ex: 06 12 34 56 78)");
       }
@@ -133,9 +133,11 @@ export const useAuth = () => {
       let errorMessage = "Erreur lors de la connexion";
       
       if (error.message?.includes("Invalid login credentials")) {
-        errorMessage = "Email ou mot de passe incorrect.";
+        errorMessage = "Identifiants incorrects. Vérifiez votre email/téléphone et mot de passe.";
       } else if (error.message?.includes("Email not confirmed")) {
         errorMessage = "Veuillez confirmer votre email avant de vous connecter.";
+      } else if (error.message?.includes("Phone not confirmed")) {
+        errorMessage = "Veuillez confirmer votre numéro de téléphone avant de vous connecter.";
       } else if (error.message?.includes("Invalid phone")) {
         errorMessage = "Numéro de téléphone invalide. Utilisez le format français (ex: 06 12 34 56 78)";
       } else if (error.message) {
@@ -144,6 +146,40 @@ export const useAuth = () => {
 
       toast({
         title: "Erreur de connexion",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithOTP = async (phone: string) => {
+    setLoading(true);
+    try {
+      const phoneNorm = normalizePhone(phone);
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phoneNorm
+      });
+      if (error) throw error;
+      
+      toast({
+        title: "Code envoyé",
+        description: "Un code de connexion a été envoyé par SMS.",
+      });
+      return { success: true, requiresVerification: true, phone: phoneNorm };
+    } catch (error: any) {
+      let errorMessage = "Erreur lors de l'envoi du SMS";
+      
+      if (error.message?.includes("Invalid phone")) {
+        errorMessage = "Numéro de téléphone invalide. Utilisez le format français (ex: 06 12 34 56 78)";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Erreur SMS",
         description: errorMessage,
         variant: "destructive"
       });
@@ -222,6 +258,7 @@ export const useAuth = () => {
     loading,
     signUp,
     signIn,
+    signInWithOTP,
     verifyOTP,
     resetPassword,
     isEmail,
