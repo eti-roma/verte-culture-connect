@@ -8,6 +8,10 @@ import { AITracking } from '@/components/AITracking';
 import { Community } from '@/components/Community';
 import { CultureParameters } from '@/components/CultureParameters';
 import { DiseasesPests } from '@/components/DiseasesPests';
+import { PhotoAnalysis } from '@/components/ai/PhotoAnalysis';
+import { CommunityHub } from '@/components/community/CommunityHub';
+import { InteractiveTraining } from '@/components/training/InteractiveTraining';
+import { DiagnosticChatbot } from '@/components/diseases/DiagnosticChatbot';
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -55,16 +59,24 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'formation':
+        return <InteractiveTraining />;
+      case 'formation-basic':
         return <Formation />;
       case 'map':
         return <ProducerMap />;
       case 'ai-tracking':
+        return <PhotoAnalysis />;
+      case 'ai-tracking-basic':
         return <AITracking />;
       case 'parameters':
         return <CultureParameters />;
       case 'diseases':
+        return <DiagnosticChatbot />;
+      case 'diseases-basic':
         return <DiseasesPests />;
       case 'community':
+        return <CommunityHub />;
+      case 'community-basic':
         return <Community />;
       default:
         return <Dashboard />;
