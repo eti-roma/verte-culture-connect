@@ -9,6 +9,8 @@ export const useRealTimeNotifications = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Simuler l'écoute des changements temps réel
+    // En attendant que la table notifications soit disponible dans les types
     const channel = supabase
       .channel('notifications-changes')
       .on(
@@ -16,22 +18,20 @@ export const useRealTimeNotifications = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'notifications'
+          table: 'community_posts' // Utiliser une table existante pour le moment
         },
         (payload) => {
-          console.log('Nouvelle notification:', payload);
+          console.log('Nouveau post communautaire:', payload);
           
           // Invalider le cache des notifications
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
           
-          // Afficher un toast pour la nouvelle notification
-          if (payload.new) {
-            toast({
-              title: payload.new.title,
-              description: payload.new.message,
-            });
-          }
+          // Afficher un toast pour la nouvelle notification simulée
+          toast({
+            title: 'Nouvelle activité',
+            description: 'Un nouveau post a été publié dans la communauté',
+          });
         }
       )
       .subscribe();
@@ -45,6 +45,7 @@ export const useRealTimeNotifications = () => {
 // Hook pour simuler l'ajout de notifications périodiques
 export const useSimulateNotifications = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -73,15 +74,21 @@ export const useSimulateNotifications = () => {
 
         const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
         
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: user.id,
-            ...randomNotification
-          });
+        // Simuler la notification au lieu d'insérer dans la DB
+        console.log('Notification simulée:', randomNotification);
+        
+        // Afficher le toast
+        toast({
+          title: randomNotification.title,
+          description: randomNotification.message,
+        });
+        
+        // Invalider les caches
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
       }
     }, 30000); // Toutes les 30 secondes
 
     return () => clearInterval(interval);
-  }, [queryClient]);
+  }, [queryClient, toast]);
 };
