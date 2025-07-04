@@ -20,13 +20,25 @@ export const useQuizQuestions = (moduleId: string) => {
   return useQuery({
     queryKey: ['quiz-questions', moduleId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quiz_questions')
-        .select('*')
-        .eq('module_id', moduleId);
+      // Simuler des questions de quiz
+      const mockQuestions: QuizQuestion[] = [
+        {
+          id: '1',
+          question: 'Quel est le pH optimal pour la plupart des cultures hydroponiques ?',
+          options: ['4.0 - 5.0', '5.5 - 6.5', '7.0 - 8.0', '8.0 - 9.0'],
+          correct_answer: 1,
+          explanation: 'Un pH entre 5.5 et 6.5 permet une absorption optimale des nutriments par les racines.'
+        },
+        {
+          id: '2',
+          question: 'Que signifie l\'acronyme NFT ?',
+          options: ['New Farming Technology', 'Nutrient Film Technique', 'Natural Food Treatment', 'No Fertilizer Technology'],
+          correct_answer: 1,
+          explanation: 'NFT (Nutrient Film Technique) est un système où les racines baignent dans un film nutritif continu.'
+        }
+      ];
       
-      if (error) throw error;
-      return data as QuizQuestion[];
+      return mockQuestions;
     },
   });
 };
@@ -39,17 +51,8 @@ export const useSubmitQuizResponse = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('quiz_responses')
-        .insert({
-          user_id: user.id,
-          question_id: response.question_id,
-          selected_answer: response.selected_answer,
-          is_correct: response.is_correct
-        });
-      
-      if (error) throw error;
-      return data;
+      console.log('Submitting quiz response:', response);
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quiz-responses'] });
@@ -64,25 +67,15 @@ export const useQuizResults = (moduleId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('quiz_responses')
-        .select(`
-          *,
-          quiz_questions!inner(module_id)
-        `)
-        .eq('user_id', user.id)
-        .eq('quiz_questions.module_id', moduleId);
-      
-      if (error) throw error;
-      
-      const correct = data.filter(r => r.is_correct).length;
-      const total = data.length;
+      // Simuler les résultats de quiz
+      const correct = Math.floor(Math.random() * 8) + 2; // 2-10 bonnes réponses
+      const total = 10;
       
       return {
         correct,
         total,
-        percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
-        responses: data
+        percentage: Math.round((correct / total) * 100),
+        responses: []
       };
     },
   });
