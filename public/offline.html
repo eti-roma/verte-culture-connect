@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mode Hors Ligne - HydroFourrage Pro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #1f2937;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        h1 {
+            color: #10b981;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .retry-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .retry-btn:hover {
+            background: #059669;
+        }
+        
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+        
+        .features h3 {
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .features ul {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            }
+            
+            .container {
+                background: #1f2937;
+                color: #f9fafb;
+            }
+            
+            p, .features ul {
+                color: #d1d5db;
+            }
+            
+            .features h3 {
+                color: #f3f4f6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🌱</div>
+        <h1>Mode Hors Ligne</h1>
+        <p>Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées, mais vous pouvez toujours consulter vos données mises en cache.</p>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            Réessayer la connexion
+        </button>
+        
+        <div class="features">
+            <h3>Fonctionnalités disponibles hors ligne :</h3>
+            <ul>
+                <li>Consultation du tableau de bord</li>
+                <li>Visualisation des données en cache</li>
+                <li>Formation et modules téléchargés</li>
+                <li>Paramètres de l'application</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Vérifier la connexion périodiquement
+        setInterval(() => {
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }, 5000);
+        
+        // Écouter les changements de statut en ligne
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

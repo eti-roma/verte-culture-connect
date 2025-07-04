@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
@@ -17,6 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslations } from "@/hooks/useTranslations";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -87,20 +90,24 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-950 transition-colors duration-300">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de l'application...</p>
+          <p className="text-gray-600 dark:text-gray-400">Chargement de l'application...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="w-full flex justify-between items-center px-4 pt-2">
-        <LanguageSelector showLabel={false} size="sm" />
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-950 transition-colors duration-300">
+      <div className="w-full flex justify-between items-center px-4 pt-2 space-x-4">
+        <div className="flex items-center space-x-3">
+          <LanguageSelector showLabel={false} size="sm" />
+          <OnlineStatusIndicator />
+        </div>
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           <span className="text-xs text-muted-foreground">
             {user?.email || t('common.user')}
           </span>
@@ -110,7 +117,7 @@ const Index = () => {
         </div>
       </div>
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 transition-all duration-300">
         {renderContent()}
       </main>
     </div>

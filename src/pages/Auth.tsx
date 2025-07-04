@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthForm from "@/components/AuthForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -69,12 +70,17 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-      <AuthForm 
-        isLogin={isLogin} 
-        setIsLogin={setIsLogin} 
-        onSuccess={handleAuthSuccess} 
-      />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-950 transition-colors duration-300 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md transition-all duration-300 transform hover:scale-105">
+        <AuthForm 
+          isLogin={isLogin} 
+          setIsLogin={setIsLogin} 
+          onSuccess={handleAuthSuccess} 
+        />
+      </div>
     </div>
   );
 };
