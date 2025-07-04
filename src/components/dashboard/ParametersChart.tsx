@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { RealTimeParametersChart } from './RealTimeParametersChart';
+import { EnhancedParametersChart } from './EnhancedParametersChart';
 
 export const ParametersChart = () => {
-  return <RealTimeParametersChart />;
+  return <EnhancedParametersChart />;
 };

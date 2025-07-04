@@ -6,19 +6,21 @@ import { Leaf, Droplets, Thermometer, Calendar, AlertCircle, TrendingUp, Activit
 import { useRealDashboardStats, useProductionHistory } from '@/hooks/useDashboardData';
 import { usePhotoAnalyses } from '@/hooks/usePhotoAnalysis';
 import { useModuleCompletion } from '@/hooks/useTrainingProgress';
-import { ProductionChart } from './dashboard/ProductionChart';
-import { ParametersChart } from './dashboard/ParametersChart';
+import { EnhancedProductionChart } from './dashboard/EnhancedProductionChart';
+import { EnhancedParametersChart } from './dashboard/EnhancedParametersChart';
 import { AlertsPanel } from './dashboard/AlertsPanel';
+import { useTranslations } from '@/hooks/useTranslations';
 
 export const EnhancedDashboard = () => {
   const { data: stats, isLoading } = useRealDashboardStats();
   const { data: analyses } = usePhotoAnalyses();
   const { data: moduleCompletion } = useModuleCompletion();
   const { data: productionData } = useProductionHistory();
+  const { t } = useTranslations();
 
   const statsList = [
     { 
-      title: 'Productions Actives', 
+      title: t('dashboard.activeProductions'), 
       value: isLoading ? "..." : String(stats?.productionsActives ?? '3'), 
       icon: Leaf, 
       color: 'text-green-600',
@@ -26,7 +28,7 @@ export const EnhancedDashboard = () => {
       changeType: 'positive' as const
     },
     { 
-      title: 'Score Santé Moyen', 
+      title: t('dashboard.averageHealthScore'), 
       value: isLoading ? "..." : `${stats?.scorePhotoMoyen ?? '85'}%`, 
       icon: Camera, 
       color: 'text-blue-600',
@@ -34,15 +36,15 @@ export const EnhancedDashboard = () => {
       changeType: 'positive' as const
     },
     { 
-      title: 'Température Actuelle', 
+      title: t('dashboard.currentTemperature'), 
       value: isLoading ? "..." : `${stats?.temperature ?? '22'}°C`, 
       icon: Thermometer, 
       color: 'text-orange-600',
-      change: 'Optimal',
+      change: t('dashboard.optimal'),
       changeType: 'neutral' as const
     },
     { 
-      title: 'Modules Terminés', 
+      title: t('dashboard.completedModules'), 
       value: isLoading ? "..." : String(stats?.modulesCompletes ?? '0'), 
       icon: BookOpen, 
       color: 'text-purple-600',
@@ -57,7 +59,7 @@ export const EnhancedDashboard = () => {
       name: 'Laitue NFT - Lot A', 
       progress: 85, 
       days: 28, 
-      status: 'Excellente', 
+      status: t('dashboard.excellent'), 
       yield: `${stats?.scorePhotoMoyen ?? 85}%`,
       healthScore: stats?.scorePhotoMoyen ?? 85
     },
@@ -65,7 +67,7 @@ export const EnhancedDashboard = () => {
       name: 'Épinards DWC - Lot B', 
       progress: 60, 
       days: 18, 
-      status: 'Bonne', 
+      status: t('dashboard.good'), 
       yield: `${Math.max(70, (stats?.scorePhotoMoyen ?? 85) - 5)}%`,
       healthScore: Math.max(70, (stats?.scorePhotoMoyen ?? 85) - 5)
     },
@@ -73,7 +75,7 @@ export const EnhancedDashboard = () => {
       name: 'Basilic Aero - Lot C', 
       progress: 30, 
       days: 8, 
-      status: 'En cours', 
+      status: t('dashboard.inProgress'), 
       yield: `${Math.max(75, (stats?.scorePhotoMoyen ?? 85) - 3)}%`,
       healthScore: Math.max(75, (stats?.scorePhotoMoyen ?? 85) - 3)
     },
@@ -83,13 +85,13 @@ export const EnhancedDashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Tableau de Bord Avancé</h2>
-          <p className="text-gray-600 mt-1">Données en temps réel de votre exploitation hydroponique</p>
+          <h2 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h2>
+          <p className="text-gray-600 mt-1">{t('dashboard.subtitle')}</p>
         </div>
         <div className="text-sm text-gray-600">
           <div className="flex items-center space-x-2">
             <Activity className="w-4 h-4 text-green-500" />
-            <span>Système connecté • Dernière sync : {new Date().toLocaleTimeString('fr-FR')}</span>
+            <span>{t('dashboard.systemConnected')} {t('dashboard.lastSync')} {new Date().toLocaleTimeString()}</span>
           </div>
         </div>
       </div>
@@ -114,7 +116,7 @@ export const EnhancedDashboard = () => {
                   }`}>
                     {stat.change}
                   </span>
-                  <span className="text-xs text-gray-500 ml-1">vs période précédente</span>
+                  <span className="text-xs text-gray-500 ml-1">{t('dashboard.vs')} {t('dashboard.previousPeriod')}</span>
                 </div>
               </CardContent>
             </Card>
@@ -122,10 +124,10 @@ export const EnhancedDashboard = () => {
         })}
       </div>
 
-      {/* Graphiques avec données réelles */}
+      {/* Graphiques améliorés avec données réelles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ProductionChart />
-        <ParametersChart />
+        <EnhancedProductionChart />
+        <EnhancedParametersChart />
       </div>
 
       {/* Alertes et productions avec données réelles */}
@@ -135,10 +137,10 @@ export const EnhancedDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Leaf className="w-5 h-5 text-green-600" />
-                <span>Productions Actives</span>
+                <span>{t('dashboard.activeProductions')}</span>
               </CardTitle>
               <CardDescription>
-                Suivi en temps réel basé sur vos analyses photo IA
+                {t('dashboard.realTimeData')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -147,8 +149,8 @@ export const EnhancedDashboard = () => {
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-gray-900">{prod.name}</span>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>Jour {prod.days}</span>
-                      <span>Santé: {prod.yield}</span>
+                      <span>{t('dashboard.day')} {prod.days}</span>
+                      <span>{t('dashboard.health')} {prod.yield}</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         prod.healthScore >= 85 ? 'bg-green-100 text-green-800' :
                         prod.healthScore >= 75 ? 'bg-blue-100 text-blue-800' :
@@ -160,8 +162,8 @@ export const EnhancedDashboard = () => {
                   </div>
                   <Progress value={prod.progress} className="h-2" />
                   <div className="text-xs text-gray-500 flex justify-between">
-                    <span>Progression: {prod.progress}%</span>
-                    <span>Score IA: {prod.healthScore}/100</span>
+                    <span>{t('dashboard.progression')} {prod.progress}%</span>
+                    <span>{t('dashboard.aiScore')} {prod.healthScore}/100</span>
                   </div>
                 </div>
               ))}
@@ -178,7 +180,7 @@ export const EnhancedDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Camera className="w-5 h-5 text-blue-600" />
-              <span>Analyses Photos Récentes</span>
+              <span>{t('dashboard.recentAnalyses')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -186,7 +188,7 @@ export const EnhancedDashboard = () => {
               {analyses.slice(0, 3).map((analysis, index) => (
                 <div key={analysis.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Analyse #{index + 1}</span>
+                    <span className="text-sm font-medium">{t('dashboard.analysis')} #{index + 1}</span>
                     <span className={`text-sm px-2 py-1 rounded-full ${
                       analysis.health_score >= 85 ? 'bg-green-100 text-green-800' :
                       analysis.health_score >= 70 ? 'bg-yellow-100 text-yellow-800' :
@@ -196,11 +198,11 @@ export const EnhancedDashboard = () => {
                     </span>
                   </div>
                   <div className="text-xs text-gray-600">
-                    {new Date(analysis.created_at).toLocaleDateString('fr-FR')}
+                    {new Date(analysis.created_at).toLocaleDateString()}
                   </div>
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div className="mt-2 text-xs">
-                      <span className="font-medium">Recommandation:</span>
+                      <span className="font-medium">{t('dashboard.recommendation')}</span>
                       <p className="text-gray-600">{analysis.recommendations[0]}</p>
                     </div>
                   )}
@@ -215,11 +217,11 @@ export const EnhancedDashboard = () => {
         <CardContent className="pt-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-green-800 mb-2">
-              🎉 Application HydroFourrage Pro - Version Complète avec Données Réelles
+              🎉 Application HydroFourrage Pro - Version Multilingue Complète
             </h3>
             <p className="text-green-700">
-              Votre application est maintenant entièrement fonctionnelle avec des données réelles ! 
-              Les graphiques, analyses IA et formations utilisent vos vraies données de production.
+              Votre application est maintenant multilingue avec des graphiques dynamiques ! 
+              Changez de langue et explorez les graphiques interactifs.
             </p>
           </div>
         </CardContent>

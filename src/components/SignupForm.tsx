@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import LocationInput from "./LocationInput";
 import OTPVerification from "./OTPVerification";
+import { LanguageSelector } from "./LanguageSelector";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface SignupFormProps {
   onSuccess: () => void;
@@ -21,6 +22,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
   const [otpPhone, setOtpPhone] = useState("");
   
   const { loading, signUp, isPhone } = useAuth();
+  const { t } = useTranslations();
 
   // Détection de la localisation
   useEffect(() => {
@@ -57,7 +59,6 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         setOtpPhone(result.phone);
         setShowOTP(true);
       } else {
-        // Pour l'inscription par email, on reste sur le formulaire mais on peut basculer vers login
         onSwitchToLogin();
       }
     }
@@ -80,12 +81,17 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md space-y-6 animate-fade-in border">
-      <h1 className="text-2xl font-bold text-center">Inscription</h1>
+      <h1 className="text-2xl font-bold text-center">{t('auth.signup')}</h1>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">{t('auth.language')}</label>
+        <LanguageSelector showLabel={false} />
+      </div>
       
       <Input
         required
         type="text"
-        placeholder="Numéro de téléphone ou Email"
+        placeholder={t('auth.phoneOrEmail')}
         autoComplete="username"
         value={identity}
         onChange={e => setIdentity(e.target.value)}
@@ -95,7 +101,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
       <Input
         required
         type="password"
-        placeholder="Mot de passe"
+        placeholder={t('auth.password')}
         autoComplete="new-password"
         value={password}
         onChange={e => setPassword(e.target.value)}
@@ -106,7 +112,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
       <Input
         required
         type="text"
-        placeholder="Nom d'utilisateur"
+        placeholder={t('auth.username')}
         value={username}
         onChange={e => setUsername(e.target.value)}
         disabled={loading}
@@ -121,7 +127,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
       />
       
       <Button className="w-full" type="submit" disabled={loading || !identity || !password || !username || !city}>
-        {loading ? "En cours..." : "S'inscrire"}
+        {loading ? t('auth.loading') : t('auth.signUp')}
       </Button>
       
       <div className="text-center">
@@ -131,7 +137,7 @@ const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
           className="text-sm text-emerald-700 underline hover:font-semibold"
           disabled={loading}
         >
-          Déjà inscrit ? Connecte-toi
+          {t('auth.alreadyHaveAccount')}
         </button>
       </div>
     </form>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Dashboard } from '@/components/Dashboard';
@@ -16,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslations } from "@/hooks/useTranslations";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,6 +24,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslations();
 
   useEffect(() => {
     // Récupérer les informations de l'utilisateur
@@ -96,13 +98,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="w-full flex justify-end items-center px-4 pt-2">
-        <span className="text-xs text-muted-foreground mr-2">
-          {user?.email || 'Utilisateur connecté'}
-        </span>
-        <Button size="sm" variant="outline" onClick={handleLogout}>
-          Se déconnecter
-        </Button>
+      <div className="w-full flex justify-between items-center px-4 pt-2">
+        <LanguageSelector showLabel={false} size="sm" />
+        <div className="flex items-center space-x-4">
+          <span className="text-xs text-muted-foreground">
+            {user?.email || t('common.user')}
+          </span>
+          <Button size="sm" variant="outline" onClick={handleLogout}>
+            {t('common.logout')}
+          </Button>
+        </div>
       </div>
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="container mx-auto px-4 py-6">
