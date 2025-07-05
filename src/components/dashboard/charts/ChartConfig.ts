@@ -25,7 +25,7 @@ export const paramConfig = {
   },
   conductivity: {
     color: '#f59e0b',
-    name: 'Conductivité',
+    name: 'charts.conductivity',
     icon: Activity,
     unit: 'mS/cm',
     scale: 10

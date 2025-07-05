@@ -1,4 +1,3 @@
-
 import { useLanguage } from './useLanguage';
 
 type TranslationKey = 
@@ -48,6 +47,7 @@ type TranslationKey =
   | 'charts.temperature'
   | 'charts.humidity'
   | 'charts.ph'
+  | 'charts.conductivity'
   | 'charts.time'
   | 'charts.date'
   | 'charts.score'
@@ -105,6 +105,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': 'Température (°C)',
     'charts.humidity': 'Humidité (%)',
     'charts.ph': 'pH',
+    'charts.conductivity': 'Conductivité (mS/cm)',
     'charts.time': 'Heure',
     'charts.date': 'Date',
     'charts.score': 'Score de santé',
@@ -161,6 +162,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': 'Temperature (°C)',
     'charts.humidity': 'Humidity (%)',
     'charts.ph': 'pH',
+    'charts.conductivity': 'Conductivity (mS/cm)',
     'charts.time': 'Time',
     'charts.date': 'Date',
     'charts.score': 'Health score',
@@ -217,6 +219,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': 'Temperatura (°C)',
     'charts.humidity': 'Humedad (%)',
     'charts.ph': 'pH',
+    'charts.conductivity': 'Conductividad (mS/cm)',
     'charts.time': 'Hora',
     'charts.date': 'Fecha',
     'charts.score': 'Puntuación de salud',
@@ -273,6 +276,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': 'Temperatur (°C)',
     'charts.humidity': 'Feuchtigkeit (%)',
     'charts.ph': 'pH',
+    'charts.conductivity': 'Leitfähigkeit (mS/cm)',
     'charts.time': 'Zeit',
     'charts.date': 'Datum',
     'charts.score': 'Gesundheitswert',
@@ -329,6 +333,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': '温度 (°C)',
     'charts.humidity': '湿度 (%)',
     'charts.ph': 'pH值',
+    'charts.conductivity': '电导率 (mS/cm)',
     'charts.time': '时间',
     'charts.date': '日期',
     'charts.score': '健康分数',
@@ -385,6 +390,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': '温度 (°C)',
     'charts.humidity': '湿度 (%)',
     'charts.ph': 'pH',
+    'charts.conductivity': '導電率 (mS/cm)',
     'charts.time': '時間',
     'charts.date': '日付',
     'charts.score': '健康スコア',
@@ -441,6 +447,7 @@ const translations: Record<string, Record<TranslationKey, string>> = {
     'charts.temperature': 'درجة الحرارة (°م)',
     'charts.humidity': 'الرطوبة (%)',
     'charts.ph': 'الأس الهيدروجيني',
+    'charts.conductivity': 'التوصيل الكهربائي (mS/cm)',
     'charts.time': 'الوقت',
     'charts.date': 'التاريخ',
     'charts.score': 'نقاط الصحة',
