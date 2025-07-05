@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Leaf, Droplets, User } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookOpen, Leaf, Droplets, User, GraduationCap, Library } from 'lucide-react';
+import { RealFormationModule } from './formation/RealFormationModule';
 
 export const Formation = () => {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
@@ -134,70 +136,89 @@ export const Formation = () => {
       <div className="text-center space-y-4">
         <h2 className="text-3xl font-bold text-gray-900">Formation Professionnelle</h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Développez vos compétences en production de fourrage hydroponique avec nos modules de formation interactifs
+          Développez vos compétences en production de fourrage hydroponique avec nos modules de formation
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {modules.map((module) => (
-          <Card 
-            key={module.id} 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-            onClick={() => setSelectedModule(module.id)}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{module.title}</CardTitle>
-                    <CardDescription className="mt-1">{module.description}</CardDescription>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-4">
-                <Badge className={getLevelColor(module.level)}>
-                  {module.level}
-                </Badge>
-                <Badge variant="outline" className="flex items-center space-x-1">
-                  <User className="w-3 h-3" />
-                  <span>{module.lessons} leçons</span>
-                </Badge>
-                <Badge variant="outline">{module.duration}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                variant="outline" 
-                className="w-full hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+      <Tabs defaultValue="interactive" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="interactive" className="flex items-center space-x-2">
+            <GraduationCap className="w-4 h-4" />
+            <span>Modules Interactifs</span>
+          </TabsTrigger>
+          <TabsTrigger value="resources" className="flex items-center space-x-2">
+            <Library className="w-4 h-4" />
+            <span>Ressources Officielles</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="interactive" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {modules.map((module) => (
+              <Card 
+                key={module.id} 
+                className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                onClick={() => setSelectedModule(module.id)}
               >
-                Accéder au Module
-              </Button>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{module.title}</CardTitle>
+                        <CardDescription className="mt-1">{module.description}</CardDescription>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <Badge className={getLevelColor(module.level)}>
+                      {module.level}
+                    </Badge>
+                    <Badge variant="outline" className="flex items-center space-x-1">
+                      <User className="w-3 h-3" />
+                      <span>{module.lessons} leçons</span>
+                    </Badge>
+                    <Badge variant="outline">{module.duration}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    variant="outline" 
+                    className="w-full hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                  >
+                    Accéder au Module
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+                  <Leaf className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900">Certification Professionnelle</h3>
+                  <p className="text-gray-600 mt-1">
+                    Obtenez votre certification en production de fourrage hydroponique après avoir complété tous les modules
+                  </p>
+                </div>
+                <Button className="bg-green-500 hover:bg-green-600 text-white">
+                  En Savoir Plus
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </TabsContent>
 
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-              <Leaf className="w-8 h-8 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900">Certification Professionnelle</h3>
-              <p className="text-gray-600 mt-1">
-                Obtenez votre certification en production de fourrage hydroponique après avoir complété tous les modules
-              </p>
-            </div>
-            <Button className="bg-green-500 hover:bg-green-600 text-white">
-              En Savoir Plus
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="resources" className="mt-6">
+          <RealFormationModule />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
