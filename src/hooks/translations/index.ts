@@ -18,4 +18,4 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
   ar: arTranslations
 };
 
-export { TranslationKey };
+export type { TranslationKey };
