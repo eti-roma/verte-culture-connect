@@ -10,7 +10,6 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { useErrorTracking } from "@/hooks/useErrorTracking";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,16 +73,10 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const ErrorTrackingWrapper = () => {
-  useErrorTracking();
-  return null;
-};
-
 const AppContent = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <ErrorTrackingWrapper />
         <Toaster />
         <Sonner />
         <BrowserRouter>
