@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 interface ErrorInfo {
   message: string;
@@ -13,7 +12,6 @@ interface ErrorInfo {
 }
 
 export const useErrorTracking = () => {
-  const { toast } = useToast();
 
   const logError = (error: ErrorInfo) => {
     // Enregistrer l'erreur localement
@@ -28,13 +26,6 @@ export const useErrorTracking = () => {
     localStorage.setItem('app-errors', JSON.stringify(errors));
     
     console.error('Error tracked:', error);
-    
-    // Afficher une notification d'erreur
-    toast({
-      title: "Une erreur s'est produite",
-      description: "L'erreur a été enregistrée pour analyse",
-      variant: "destructive"
-    });
   };
 
   const getStoredErrors = (): ErrorInfo[] => {
