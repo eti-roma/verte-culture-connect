@@ -8,14 +8,35 @@ export const useAuth = () => {
   const { toast } = useToast();
 
   const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  const isPhone = (value: string) => /^(\+33|0)[1-9](\d{8})$/.test(value.replace(/\s/g, ""));
+  
+  // Improved phone validation for international numbers
+  const isPhone = (value: string) => {
+    const cleaned = value.replace(/[\s\-\(\)]/g, "");
+    // Check if it's a valid international phone number (starts with + and has 7-15 digits)
+    return /^\+[1-9]\d{6,14}$/.test(cleaned);
+  };
 
   const normalizePhone = (phone: string) => {
-    const cleaned = phone.replace(/\s/g, "");
+    // Remove all spaces, dashes, parentheses
+    const cleaned = phone.replace(/[\s\-\(\)]/g, "");
+    
+    // If it already starts with +, return as is
+    if (cleaned.startsWith("+")) {
+      return cleaned;
+    }
+    
+    // If it starts with 0, assume it's French number
     if (cleaned.startsWith("0")) {
       return "+33" + cleaned.substring(1);
     }
-    return cleaned;
+    
+    // If it starts with 6, 7, 8, or 9 and has 8-9 digits, assume it's Cameroon
+    if (/^[6789]\d{7,8}$/.test(cleaned)) {
+      return "+237" + cleaned;
+    }
+    
+    // Otherwise, return the cleaned number (assuming it's already international format without +)
+    return "+" + cleaned;
   };
 
   const signUp = async (identity: string, password: string, username: string, phone: string, city: string) => {

@@ -70,11 +70,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-950 transition-colors duration-300 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-950 transition-colors duration-300 relative px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-md transition-all duration-300 transform hover:scale-105">
+      <div className="w-full max-w-lg transition-all duration-300 transform hover:scale-[1.02]">
         <AuthForm 
           isLogin={isLogin} 
           setIsLogin={setIsLogin} 

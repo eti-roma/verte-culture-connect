@@ -94,7 +94,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <ErrorBoundary>
-      <AppContent />
+      <TooltipProvider>
+        <AppContent />
+        <Toaster />
+        <Sonner />
+      </TooltipProvider>
     </ErrorBoundary>
   );
 };
