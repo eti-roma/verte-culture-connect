@@ -74,12 +74,16 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppContent = () => {
+const ErrorTrackingWrapper = () => {
   useErrorTracking();
+  return null;
+};
 
+const AppContent = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <ErrorTrackingWrapper />
         <Toaster />
         <Sonner />
         <BrowserRouter>
