@@ -1,12 +1,17 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import AuthForm from "@/components/AuthForm";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -52,8 +57,32 @@ const Auth = () => {
     }
   }, [mode, searchParams, navigate]);
 
-  const handleAuthSuccess = () => {
-    navigate("/", { replace: true });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        navigate("/", { replace: true });
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        console.log("Inscription réussie - Vérifiez votre email");
+        setIsLogin(true);
+      }
+    } catch (error: any) {
+      console.error("Auth error:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,12 +90,69 @@ const Auth = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-lg transition-all duration-300 transform hover:scale-[1.02]">
-        <AuthForm 
-          isLogin={isLogin} 
-          setIsLogin={setIsLogin} 
-          onSuccess={handleAuthSuccess} 
-        />
+      <div className="w-full max-w-lg">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-card shadow-lg rounded-lg p-8 w-full space-y-6 border border-border">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground">
+              {isLogin ? "Connexion" : "Inscription"}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isLogin ? "Connectez-vous à votre compte" : "Créez votre compte"}
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="exemple@email.com"
+                disabled={loading}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                Mot de passe
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Votre mot de passe"
+                disabled={loading}
+                required
+              />
+            </div>
+          </div>
+          
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+            type="submit" 
+            disabled={loading || !email || !password}
+            size="lg"
+          >
+            {loading ? "Chargement..." : (isLogin ? "Se connecter" : "S'inscrire")}
+          </Button>
+          
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary hover:text-primary/80 font-medium underline transition-colors"
+              disabled={loading}
+            >
+              {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
