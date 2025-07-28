@@ -3,14 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthForm from "@/components/AuthForm";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   
   const mode = searchParams.get('mode');
 
@@ -42,28 +40,17 @@ const Auth = () => {
           refresh_token: refreshToken,
         }).then(({ data, error }) => {
           if (error) {
-            toast({
-              title: "Erreur",
-              description: "Lien de réinitialisation invalide ou expiré.",
-              variant: "destructive"
-            });
+            console.error("Reset password error:", error);
           } else if (data.session) {
-            toast({
-              title: "Connexion réussie",
-              description: "Vous pouvez maintenant changer votre mot de passe dans les paramètres.",
-            });
+            console.log("Reset password success");
             navigate("/", { replace: true });
           }
         });
       } else {
-        toast({
-          title: "Lien invalide",
-          description: "Le lien de réinitialisation est invalide ou expiré.",
-          variant: "destructive"
-        });
+        console.error("Invalid reset link");
       }
     }
-  }, [mode, searchParams, navigate, toast]);
+  }, [mode, searchParams, navigate]);
 
   const handleAuthSuccess = () => {
     navigate("/", { replace: true });
