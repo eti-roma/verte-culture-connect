@@ -236,3 +236,16 @@
     @apply px-4;
   }
 }
+
+/* Toast notifications styling */
+.sonner-toast {
+  @apply bg-background border border-border text-foreground shadow-lg;
+}
+
+.sonner-toast-success {
+  @apply border-primary/50 bg-primary/5;
+}
+
+.sonner-toast-error {
+  @apply border-destructive/50 bg-destructive/5;
+}
