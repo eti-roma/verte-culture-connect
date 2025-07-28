@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Camera, Upload, History, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
 export const PhotoAnalysis = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const { toast } = useToast();
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -21,7 +24,10 @@ export const PhotoAnalysis = () => {
         if (prev >= 100) {
           clearInterval(interval);
           setAnalyzing(false);
-          console.log("Analyse terminée - Vos plantes sont en bonne santé ! Score: 85/100");
+          toast({
+            title: "Analyse terminée",
+            description: "Vos plantes sont en bonne santé ! Score: 85/100",
+          });
           return 100;
         }
         return prev + 10;

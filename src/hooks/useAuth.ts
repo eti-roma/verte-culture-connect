@@ -1,9 +1,11 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   
@@ -63,7 +65,10 @@ export const useAuth = () => {
           if (profileError) throw profileError;
         }
         
-        console.log("Inscription réussie - Vérifie ton email pour confirmer ton compte.");
+        toast({ 
+          title: "Inscription réussie", 
+          description: "Vérifie ton email pour confirmer ton compte." 
+        });
         return { success: true };
       } else if (isPhone(identity)) {
         const phoneNorm = normalizePhone(identity);
@@ -86,7 +91,10 @@ export const useAuth = () => {
           if (profileError) throw profileError;
         }
         
-        console.log("Vérification requise - Un code a été envoyé par SMS.");
+        toast({
+          title: "Vérification requise",
+          description: "Un code a été envoyé par SMS.",
+        });
         return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
         throw new Error("Format invalide. Utilisez un email ou un numéro français (ex: 06 12 34 56 78)");
@@ -104,7 +112,11 @@ export const useAuth = () => {
         errorMessage = error.message;
       }
 
-      console.error("Erreur d'inscription:", errorMessage);
+      toast({
+        title: "Erreur d'inscription",
+        description: errorMessage,
+        variant: "destructive"
+      });
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -121,7 +133,7 @@ export const useAuth = () => {
         });
         if (error) throw error;
         
-        console.log("Connexion réussie");
+        toast({ title: "Connexion réussie" });
         return { success: true };
       } else if (isPhone(identity)) {
         const phoneNorm = normalizePhone(identity);
@@ -130,7 +142,10 @@ export const useAuth = () => {
         });
         if (error) throw error;
         
-        console.log("Vérification requise - Un code a été envoyé par SMS.");
+        toast({
+          title: "Vérification requise",
+          description: "Un code a été envoyé par SMS.",
+        });
         return { success: true, requiresVerification: true, phone: phoneNorm };
       } else {
         throw new Error("Format invalide. Utilisez un email ou un numéro français (ex: 06 12 34 56 78)");
@@ -148,7 +163,11 @@ export const useAuth = () => {
         errorMessage = error.message;
       }
 
-      console.error("Erreur de connexion:", errorMessage);
+      toast({
+        title: "Erreur de connexion",
+        description: errorMessage,
+        variant: "destructive"
+      });
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -165,7 +184,7 @@ export const useAuth = () => {
       });
       if (error) throw error;
       
-      console.log("Vérification réussie");
+      toast({ title: "Vérification réussie" });
       return { success: true };
     } catch (error: any) {
       let errorMessage = "Le code saisi est invalide ou expiré.";
@@ -176,7 +195,11 @@ export const useAuth = () => {
         errorMessage = "Code incorrect. Vérifiez et réessayez.";
       }
 
-      console.error("Code incorrect:", errorMessage);
+      toast({
+        title: "Code incorrect",
+        description: errorMessage,
+        variant: "destructive"
+      });
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -191,7 +214,10 @@ export const useAuth = () => {
       });
       if (error) throw error;
       
-      console.log("Email envoyé - Vérifie ton email pour réinitialiser ton mot de passe.");
+      toast({
+        title: "Email envoyé",
+        description: "Vérifie ton email pour réinitialiser ton mot de passe.",
+      });
       return { success: true };
     } catch (error: any) {
       let errorMessage = "Erreur lors de l'envoi de l'email";
@@ -202,7 +228,11 @@ export const useAuth = () => {
         errorMessage = error.message;
       }
 
-      console.error("Erreur:", errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
