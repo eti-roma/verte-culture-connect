@@ -2,11 +2,9 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
 
 export const useRealTimeNotifications = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   useEffect(() => {
     // Simuler l'écoute des changements temps réel
@@ -27,11 +25,7 @@ export const useRealTimeNotifications = () => {
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
           
-          // Afficher un toast pour la nouvelle notification simulée
-          toast({
-            title: 'Nouvelle activité',
-            description: 'Un nouveau post a été publié dans la communauté',
-          });
+          console.log('Nouvelle activité - Un nouveau post a été publié dans la communauté');
         }
       )
       .subscribe();
@@ -39,13 +33,11 @@ export const useRealTimeNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, toast]);
+  }, [queryClient]);
 };
 
-// Hook pour simuler l'ajout de notifications périodiques
 export const useSimulateNotifications = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -77,12 +69,6 @@ export const useSimulateNotifications = () => {
         // Simuler la notification au lieu d'insérer dans la DB
         console.log('Notification simulée:', randomNotification);
         
-        // Afficher le toast
-        toast({
-          title: randomNotification.title,
-          description: randomNotification.message,
-        });
-        
         // Invalider les caches
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
         queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
@@ -90,5 +76,5 @@ export const useSimulateNotifications = () => {
     }, 30000); // Toutes les 30 secondes
 
     return () => clearInterval(interval);
-  }, [queryClient, toast]);
+  }, [queryClient]);
 };

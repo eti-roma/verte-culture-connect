@@ -14,7 +14,6 @@ import { InteractiveTraining } from '@/components/training/InteractiveTraining';
 import { DiagnosticChatbot } from '@/components/diseases/DiagnosticChatbot';
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -25,7 +24,6 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslations();
 
@@ -48,14 +46,10 @@ const Index = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      toast({ title: "Déconnexion réussie" });
+      console.log("Déconnexion réussie");
       navigate("/auth");
     } catch (error) {
-      toast({ 
-        title: "Erreur", 
-        description: "Erreur lors de la déconnexion",
-        variant: "destructive" 
-      });
+      console.error("Erreur lors de la déconnexion:", error);
     }
   };
 
