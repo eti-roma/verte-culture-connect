@@ -7,9 +7,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import SimpleAuthForm from "@/components/simple-auth/SimpleAuthForm";
+import './i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,7 +79,7 @@ const AppContent = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/auth" element={<SimpleAuthForm />} />
           <Route path="/" element={
             <PrivateRoute>
               <Index />
