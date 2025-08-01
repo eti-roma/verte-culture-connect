@@ -30,30 +30,21 @@ export const useSimpleAuth = () => {
   const sendOTP = async (phone: string) => {
     setLoading(true);
     try {
-      const normalizedPhone = normalizePhone(phone);
+      // react-phone-input-2 already provides phone with + prefix
+      const formattedPhone = phone.startsWith('+') ? phone : '+' + phone;
       
-      if (!isValidPhone(normalizedPhone)) {
-        throw new Error(t('invalid_phone'));
+      if (!formattedPhone || formattedPhone.length < 7) {
+        throw new Error('Numéro de téléphone invalide');
       }
 
       const { error } = await supabase.auth.signInWithOtp({
-        phone: normalizedPhone
+        phone: formattedPhone
       });
 
       if (error) throw error;
 
-      toast({
-        title: t('code_sent', { phone: normalizedPhone }),
-        description: t('enter_code'),
-      });
-
-      return { success: true, phone: normalizedPhone };
+      return { success: true, phone: formattedPhone };
     } catch (error: any) {
-      toast({
-        title: t('error'),
-        description: error.message || t('invalid_phone'),
-        variant: 'destructive',
-      });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -63,8 +54,10 @@ export const useSimpleAuth = () => {
   const verifyOTP = async (phone: string, token: string) => {
     setLoading(true);
     try {
+      const formattedPhone = phone.startsWith('+') ? phone : '+' + phone;
+      
       const { data, error } = await supabase.auth.verifyOtp({
-        phone,
+        phone: formattedPhone,
         token,
         type: 'sms'
       });
@@ -74,18 +67,8 @@ export const useSimpleAuth = () => {
       // Check if this is a new user (first time verification)
       const isNewUser = data.user?.phone_confirmed_at === data.user?.created_at;
 
-      toast({
-        title: isNewUser ? t('welcome') : t('welcome_back'),
-        description: t('verification_success'),
-      });
-
       return { success: true, isNewUser, user: data.user };
     } catch (error: any) {
-      toast({
-        title: t('error'),
-        description: error.message || t('code_invalid'),
-        variant: 'destructive',
-      });
       return { success: false, error: error.message };
     } finally {
       setLoading(false);

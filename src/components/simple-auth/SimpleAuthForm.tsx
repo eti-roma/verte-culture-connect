@@ -1,79 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
 import { useSimpleAuth } from '@/hooks/useSimpleAuth';
 import { useNavigate } from 'react-router-dom';
-import SimplePhoneInput from './PhoneInput';
-import OTPInput from './OTPInput';
-import ProfileSetup from './ProfileSetup';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { User } from '@supabase/supabase-js';
-
-type AuthStep = 'phone' | 'otp' | 'profile';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const SimpleAuthForm = () => {
-  const [step, setStep] = useState<AuthStep>('phone');
   const [phone, setPhone] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
-  const [user, setUser] = useState<User | null>(null);
-  const [resendTimer, setResendTimer] = useState(0);
+  const [message, setMessage] = useState('');
   
-  const { t } = useTranslation();
   const { loading, sendOTP, verifyOTP } = useSimpleAuth();
   const navigate = useNavigate();
 
-  // Resend timer countdown
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
-
-  const handlePhoneSubmit = async () => {
+  const handleSendOtp = async () => {
+    setMessage('');
     const result = await sendOTP(phone);
     if (result.success) {
-      setPhone(result.phone!);
-      setStep('otp');
-      setResendTimer(60); // 60 seconds cooldown
+      setOtpSent(true);
+      setMessage("Un code a été envoyé par SMS.");
+    } else {
+      setMessage('Erreur lors de l\'envoi du code : ' + result.error);
     }
   };
 
-  const handleOTPSubmit = async () => {
+  const handleVerifyOtp = async () => {
     const result = await verifyOTP(phone, otp);
     if (result.success) {
-      setUser(result.user!);
-      if (result.isNewUser) {
-        setStep('profile');
-      } else {
-        navigate('/', { replace: true });
-      }
-    }
-  };
-
-  const handleResendOTP = async () => {
-    if (resendTimer === 0) {
-      const result = await sendOTP(phone);
-      if (result.success) {
-        setResendTimer(60);
-        setOtp('');
-      }
-    }
-  };
-
-  const handleProfileComplete = () => {
-    navigate('/', { replace: true });
-  };
-
-  const handleBack = () => {
-    if (step === 'otp') {
-      setStep('phone');
-      setOtp('');
-    } else if (step === 'profile') {
-      setStep('otp');
+      setMessage('Connexion réussie. Bienvenue !');
+      // Redirection automatique vers l'accueil
+      navigate('/', { replace: true });
+    } else {
+      setMessage('Erreur de vérification : ' + result.error);
     }
   };
 
@@ -83,97 +44,87 @@ const SimpleAuthForm = () => {
         <ThemeToggle />
       </div>
 
-      {step === 'phone' && (
-        <div className="w-full max-w-md mx-auto bg-background border border-border rounded-2xl p-8 shadow-xl">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📱</span>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              {t('welcome')}
-            </h1>
-            <p className="text-muted-foreground">
-              {t('subtitle')}
-            </p>
+      <div className="w-full max-w-sm mx-auto bg-background border border-border rounded-2xl p-8 shadow-xl">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">📱</span>
           </div>
-
-          <div className="space-y-6">
-            <SimplePhoneInput
-              value={phone}
-              onChange={setPhone}
-              disabled={loading}
-            />
-
-            <Button
-              onClick={handlePhoneSubmit}
-              disabled={loading || !phone}
-              className="w-full h-14 text-lg font-semibold rounded-xl"
-            >
-              {loading ? t('loading') : t('continue')}
-            </Button>
-          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Connexion / Inscription
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Entrez votre numéro de téléphone pour continuer
+          </p>
         </div>
-      )}
 
-      {step === 'otp' && (
-        <div className="w-full max-w-md mx-auto bg-background border border-border rounded-2xl p-8 shadow-xl">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🔐</span>
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {t('enter_code')}
-            </h1>
-            <p className="text-muted-foreground">
-              {t('code_sent', { phone })}
-            </p>
-          </div>
+        <div className="space-y-4">
+          <PhoneInput
+            country={'cm'}
+            enableSearch={true}
+            value={phone}
+            onChange={setPhone}
+            containerClass="w-full"
+            inputClass="!w-full !h-12 !text-base !border-2 !border-border !bg-background !text-foreground focus:!border-primary"
+            buttonClass="!border-2 !border-border !bg-background hover:!bg-accent"
+            dropdownClass="!bg-background !border-border !shadow-lg"
+            searchClass="!bg-background !text-foreground !border-border"
+            placeholder="Numéro de téléphone"
+            disabled={loading}
+          />
 
-          <div className="space-y-6">
-            <OTPInput
-              value={otp}
-              onChange={setOtp}
-              disabled={loading}
-            />
-
+          {!otpSent ? (
             <Button
-              onClick={handleOTPSubmit}
-              disabled={loading || otp.length !== 6}
-              className="w-full h-14 text-lg font-semibold rounded-xl"
+              onClick={handleSendOtp}
+              disabled={loading || !phone}
+              className="w-full h-12 text-base font-semibold rounded-xl"
             >
-              {loading ? t('loading') : t('verify')}
+              {loading ? 'Envoi...' : 'Recevoir le code'}
             </Button>
-
-            <div className="text-center space-y-2">
+          ) : (
+            <div className="space-y-4">
+              <Input
+                type="text"
+                placeholder="Code reçu par SMS"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full h-12 text-base border-2 rounded-xl text-center text-lg font-mono tracking-widest"
+                maxLength={6}
+                disabled={loading}
+              />
               <Button
-                variant="ghost"
-                onClick={handleResendOTP}
-                disabled={loading || resendTimer > 0}
-                className="text-muted-foreground hover:text-foreground"
+                onClick={handleVerifyOtp}
+                disabled={loading || !otp}
+                className="w-full h-12 text-base font-semibold rounded-xl"
               >
-                {resendTimer > 0 ? `${t('resend_code')} (${resendTimer}s)` : t('resend_code')}
+                {loading ? 'Vérification...' : 'Se connecter'}
               </Button>
-
+              
               <Button
                 variant="ghost"
-                onClick={handleBack}
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp('');
+                  setMessage('');
+                }}
                 disabled={loading}
                 className="w-full text-muted-foreground hover:text-foreground"
               >
-                {t('back')}
+                Modifier le numéro
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {step === 'profile' && user && (
-        <ProfileSetup
-          user={user}
-          phone={phone}
-          onComplete={handleProfileComplete}
-        />
-      )}
+          {message && (
+            <div className={`text-sm text-center p-3 rounded-lg ${
+              message.includes('Erreur') 
+                ? 'bg-destructive/10 text-destructive' 
+                : 'bg-primary/10 text-primary'
+            }`}>
+              {message}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
