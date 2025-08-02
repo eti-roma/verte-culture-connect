@@ -190,6 +190,47 @@ export type Database = {
         }
         Relationships: []
       }
+      lecons: {
+        Row: {
+          contenu: string | null
+          created_at: string | null
+          id: string
+          module_id: string
+          ordre: number
+          titre: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          contenu?: string | null
+          created_at?: string | null
+          id?: string
+          module_id: string
+          ordre?: number
+          titre: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          contenu?: string | null
+          created_at?: string | null
+          id?: string
+          module_id?: string
+          ordre?: number
+          titre?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       likes: {
         Row: {
           created_at: string
@@ -218,6 +259,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      modules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          ordre: number
+          titre: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ordre?: number
+          titre: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          ordre?: number
+          titre?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       photo_analyses: {
         Row: {
