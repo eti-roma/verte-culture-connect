@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
+import FormationPage from "./components/formation/FormationPage";
 import NotFound from "./pages/NotFound";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -80,6 +81,11 @@ const AppContent = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<SimpleAuthForm />} />
+          <Route path="/formation" element={
+            <PrivateRoute>
+              <FormationPage />
+            </PrivateRoute>
+          } />
           <Route path="/" element={
             <PrivateRoute>
               <Index />
