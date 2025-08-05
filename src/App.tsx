@@ -77,35 +77,35 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppContent = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<SimpleAuthForm />} />
-          <Route path="/formation" element={
-            <PrivateRoute>
-              <FormationPage />
-            </PrivateRoute>
-          } />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Index />
-            </PrivateRoute>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<SimpleAuthForm />} />
+            <Route path="/formation" element={
+              <PrivateRoute>
+                <FormationPage />
+              </PrivateRoute>
+            } />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Index />
+              </PrivateRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </TooltipProvider>
   );
 };
 
 const App = () => {
   return (
     <ErrorBoundary>
-      <TooltipProvider>
-        <AppContent />
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
+      <AppContent />
+      <Toaster />
+      <Sonner />
     </ErrorBoundary>
   );
 };
