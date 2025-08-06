@@ -17,12 +17,26 @@ export const useModuleCompletion = () => {
     queryKey: ['module-completion'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { totalModules: 4, completedModules: 0 };
+      if (!user) return { totalModules: 0, completedModules: 0 };
 
-      // Simuler la progression pour éviter les erreurs de type
+      // Get total modules count
+      const { data: modules } = await supabase
+        .from('training_modules')
+        .select('id');
+
+      // Get completed modules (modules where all sections are completed)
+      const { data: completedModules } = await supabase
+        .from('training_progress')
+        .select('module_id')
+        .eq('user_id', user.id)
+        .eq('progress_percentage', 100);
+
+      const totalModules = modules?.length || 0;
+      const uniqueCompletedModules = new Set(completedModules?.map(cm => cm.module_id) || []).size;
+
       return {
-        totalModules: 4,
-        completedModules: Math.floor(Math.random() * 3) + 1 // 1-3 modules complétés
+        totalModules,
+        completedModules: uniqueCompletedModules
       };
     },
   });
@@ -35,10 +49,27 @@ export const useTrainingProgress = (moduleId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Simuler la progression
+      // Get progress for this module
+      const { data: progress } = await supabase
+        .from('training_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('module_id', moduleId);
+
+      if (!progress || progress.length === 0) {
+        return {
+          progress_percentage: 0,
+          completed_at: null
+        };
+      }
+
+      // Calculate average progress for the module
+      const avgProgress = progress.reduce((sum, p) => sum + p.progress_percentage, 0) / progress.length;
+      const isCompleted = progress.every(p => p.progress_percentage === 100);
+
       return {
-        progress_percentage: Math.floor(Math.random() * 100),
-        completed_at: null
+        progress_percentage: Math.round(avgProgress),
+        completed_at: isCompleted ? progress[0].completed_at : null
       };
     },
   });
@@ -56,9 +87,22 @@ export const useUpdateProgress = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Simuler la mise à jour de progression
-      console.log('Updating progress:', { moduleId, sectionId, progressPercentage });
-      return { success: true };
+      // Update or insert progress
+      const { data, error } = await supabase
+        .from('training_progress')
+        .upsert({
+          user_id: user.id,
+          module_id: moduleId,
+          section_id: sectionId,
+          progress_percentage: progressPercentage,
+          completed_at: progressPercentage === 100 ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,module_id,section_id'
+        });
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training-progress'] });

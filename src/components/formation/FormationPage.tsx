@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { useFormation } from '@/hooks/useFormationData';
 import ModuleCard from './ModuleCard';
 import LeconCard from './LeconCard';
+import { InteractiveFormation } from './InteractiveFormation';
+import { RealFormationModule } from './RealFormationModule';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, GraduationCap } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, BookOpen, GraduationCap, Target, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const FormationPage = () => {
@@ -61,12 +64,12 @@ const FormationPage = () => {
               )}
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {selectedModule ? selectedModuleTitle : 'Formation au Fourrage Hydroponique'}
+              {selectedModule ? selectedModuleTitle : 'Centre de Formation'}
             </h1>
             <p className="text-muted-foreground">
               {selectedModule 
                 ? 'Suivez les leçons dans l\'ordre pour une meilleure compréhension'
-                : 'Apprenez les techniques modernes de production de fourrage hydroponique'
+                : 'Maîtrisez la production de fourrage hydroponique grâce à nos formations complètes et interactives'
               }
             </p>
           </div>
@@ -74,22 +77,48 @@ const FormationPage = () => {
 
         {/* Content */}
         {!selectedModule ? (
-          // Modules Grid
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-48 rounded-lg" />
-              ))
-            ) : (
-              modules.map((module) => (
-                <ModuleCard
-                  key={module.id}
-                  module={module}
-                  onSelect={handleModuleSelect}
-                />
-              ))
-            )}
-          </div>
+          <Tabs defaultValue="interactive" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="interactive" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Formation Interactive
+              </TabsTrigger>
+              <TabsTrigger value="modules" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Modules Classiques
+              </TabsTrigger>
+              <TabsTrigger value="resources" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Ressources Externes
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="interactive">
+              <InteractiveFormation />
+            </TabsContent>
+
+            <TabsContent value="modules">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-48 rounded-lg" />
+                  ))
+                ) : (
+                  modules.map((module) => (
+                    <ModuleCard
+                      key={module.id}
+                      module={module}
+                      onSelect={handleModuleSelect}
+                    />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="resources">
+              <RealFormationModule />
+            </TabsContent>
+          </Tabs>
         ) : (
           // Lecons Grid
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

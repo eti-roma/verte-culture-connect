@@ -472,6 +472,54 @@ export type Database = {
         }
         Relationships: []
       }
+      training_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          module_id: string | null
+          progress_percentage: number | null
+          section_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          module_id?: string | null
+          progress_percentage?: number | null
+          section_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          module_id?: string | null
+          progress_percentage?: number | null
+          section_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_progress_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "training_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_resources: {
         Row: {
           content: string | null
