@@ -37,6 +37,28 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Cache clearing script -->
+    <script>
+      // Force aggressive cache clearing
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name);
+          });
+        });
+      }
+      
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear React fiber if it exists
+      if (window.React) {
+        delete window.React;
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     
     <!-- Service Worker Registration -->
