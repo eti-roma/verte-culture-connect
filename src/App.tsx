@@ -1,77 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
-import FormationPage from "./components/formation/FormationPage";
-import NotFound from "./pages/NotFound";
-import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import SimpleAuthForm from "@/components/simple-auth/SimpleAuthForm";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "sonner";
 import './i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error) => {
-        if (!navigator.onLine) return false;
-        return failureCount < 3;
-      },
+      retry: 2,
       staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
     },
   },
 });
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
-      } catch (error) {
-        console.error('Authentication check failed:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthentication();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Main Application Component
 function App() {
   return (
     <ErrorBoundary>
@@ -80,27 +23,10 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<SimpleAuthForm />} />
-              <Route 
-                path="/formation" 
-                element={
-                  <ProtectedRoute>
-                    <FormationPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/" 
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/" element={<div>Home Page</div>} />
+              <Route path="*" element={<div>Not Found</div>} />
             </Routes>
           </BrowserRouter>
-          <Toaster />
-          <Sonner />
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>
