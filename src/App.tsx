@@ -12,6 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import SimpleAuthForm from "@/components/simple-auth/SimpleAuthForm";
 import './i18n';
 
+// Cache buster: 2025-08-07-v2
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,40 +26,40 @@ const queryClient = new QueryClient({
   },
 });
 
-// Simplified PrivateRoute component
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const [loading, setLoading] = useState(true);
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthentication = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Authentication check failed:', error);
         setIsAuthenticated(false);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    checkAuth();
+    checkAuthentication();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
-      setLoading(false);
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Vérification de la connexion...</p>
+          <p className="text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -71,23 +72,30 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
+// Main Application Component
+function Application() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<SimpleAuthForm />} />
-            <Route path="/formation" element={
-              <PrivateRoute>
-                <FormationPage />
-              </PrivateRoute>
-            } />
-            <Route path="/" element={
-              <PrivateRoute>
-                <Index />
-              </PrivateRoute>
-            } />
+            <Route 
+              path="/formation" 
+              element={
+                <ProtectedRoute>
+                  <FormationPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -96,6 +104,6 @@ const App = () => {
       </QueryClientProvider>
     </ErrorBoundary>
   );
-};
+}
 
-export default App;
+export default Application;
