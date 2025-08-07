@@ -64,8 +64,7 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'formation':
-        navigate('/formation');
-        return null;
+        return <InteractiveTraining />;
       case 'formation-basic':
         return <Formation />;
       case 'map':
