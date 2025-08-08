@@ -1,14 +1,19 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Leaf, Droplets, User, GraduationCap, Library } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { BookOpen, User, GraduationCap, Library, ExternalLink, Play } from 'lucide-react';
 import { RealFormationModule } from './formation/RealFormationModule';
+import { useFormation } from '@/hooks/useFormation';
+import { useTrainingProgress } from '@/hooks/useTrainingProgress';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const Formation = () => {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const { data: courses, isLoading } = useFormation();
+  const { data: moduleCompletion } = useTrainingProgress('all');
 
   const modules = [
     {
@@ -79,8 +84,25 @@ export const Formation = () => {
     }
   };
 
+  // Obtenir les cours liés à un module
+  const getModuleCourses = (moduleId: string) => {
+    if (!courses) return [];
+    // Mapper les IDs de modules aux noms de modules dans la base de données
+    const moduleMapping = {
+      'basics': 'Physiologie',
+      'setup': 'Environnement', 
+      'production': 'Nutrition',
+      'troubleshooting': 'Maladies'
+    };
+    const moduleName = moduleMapping[moduleId as keyof typeof moduleMapping];
+    return courses.filter(course => course.module === moduleName);
+  };
+
   if (selectedModule) {
     const module = modules.find(m => m.id === selectedModule);
+    const moduleCourses = getModuleCourses(selectedModule);
+    const progress = Math.floor(Math.random() * 100); // Simulation de progression
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -109,24 +131,94 @@ export const Formation = () => {
               <Badge variant="outline">{module?.duration}</Badge>
               <Badge variant="outline">{module?.lessons} leçons</Badge>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Contenu du module :</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {module?.content.map((lesson, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    {index + 1}
-                  </div>
-                  <span className="text-gray-800">{lesson}</span>
-                </div>
-              ))}
+            
+            {/* Barre de progression */}
+            <div className="mt-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Progression</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="w-full" />
             </div>
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white mt-6">
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Contenu du module :</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {module?.content.map((lesson, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                    <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      {index + 1}
+                    </div>
+                    <span className="text-gray-800">{lesson}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cours disponibles pour ce module */}
+            {moduleCourses.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ressources complémentaires :</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {moduleCourses.map((course) => (
+                    <Card key={course.id} className="border border-green-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{course.title}</h4>
+                            {course.description && (
+                              <p className="text-sm text-gray-600 mt-1">{course.description}</p>
+                            )}
+                          </div>
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(course.url, '_blank', 'noopener,noreferrer')}
+                            className="ml-4"
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Accéder
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
+              <Play className="w-4 h-4 mr-2" />
               Commencer le Module
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-4">
+          <Skeleton className="h-8 w-64 mx-auto" />
+          <Skeleton className="h-4 w-96 mx-auto" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -154,65 +246,65 @@ export const Formation = () => {
 
         <TabsContent value="interactive" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {modules.map((module) => (
-              <Card 
-                key={module.id} 
-                className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                onClick={() => setSelectedModule(module.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{module.title}</CardTitle>
-                        <CardDescription className="mt-1">{module.description}</CardDescription>
+            {modules.map((module) => {
+              const moduleCourses = getModuleCourses(module.id);
+              const progress = Math.floor(Math.random() * 100); // Simulation
+              
+              return (
+                <Card 
+                  key={module.id} 
+                  className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                  onClick={() => setSelectedModule(module.id)}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                          <BookOpen className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{module.title}</CardTitle>
+                          <CardDescription className="mt-1">{module.description}</CardDescription>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <Badge className={getLevelColor(module.level)}>
-                      {module.level}
-                    </Badge>
-                    <Badge variant="outline" className="flex items-center space-x-1">
-                      <User className="w-3 h-3" />
-                      <span>{module.lessons} leçons</span>
-                    </Badge>
-                    <Badge variant="outline">{module.duration}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="outline" 
-                    className="w-full hover:bg-green-50 hover:text-green-600 hover:border-green-200"
-                  >
-                    Accéder au Module
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Badge className={getLevelColor(module.level)}>
+                        {module.level}
+                      </Badge>
+                      <Badge variant="outline" className="flex items-center space-x-1">
+                        <User className="w-3 h-3" />
+                        <span>{module.lessons} leçons</span>
+                      </Badge>
+                      <Badge variant="outline">{module.duration}</Badge>
+                      {moduleCourses.length > 0 && (
+                        <Badge variant="secondary">
+                          +{moduleCourses.length} ressources
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {/* Barre de progression */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Progression</span>
+                        <span>{progress}%</span>
+                      </div>
+                      <Progress value={progress} className="w-full" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="w-full hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                    >
+                      {progress > 0 ? 'Continuer le Module' : 'Commencer le Module'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-
-          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-                  <Leaf className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900">Certification Professionnelle</h3>
-                  <p className="text-gray-600 mt-1">
-                    Obtenez votre certification en production de fourrage hydroponique après avoir complété tous les modules
-                  </p>
-                </div>
-                <Button className="bg-green-500 hover:bg-green-600 text-white">
-                  En Savoir Plus
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="resources" className="mt-6">
