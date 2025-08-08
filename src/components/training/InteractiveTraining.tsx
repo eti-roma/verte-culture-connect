@@ -19,7 +19,7 @@ export const InteractiveTraining = () => {
       duration: '2h 30min',
       lessons: 12,
       quiz: true,
-      certificate: true
+      certificate: false
     },
     {
       id: 2,
@@ -30,7 +30,7 @@ export const InteractiveTraining = () => {
       duration: '3h 15min',
       lessons: 15,
       quiz: true,
-      certificate: true
+      certificate: false
     },
     {
       id: 3,
@@ -41,7 +41,7 @@ export const InteractiveTraining = () => {
       duration: '2h 45min',
       lessons: 10,
       quiz: true,
-      certificate: true
+      certificate: false
     },
     {
       id: 4,
@@ -52,7 +52,7 @@ export const InteractiveTraining = () => {
       duration: '4h 00min',
       lessons: 18,
       quiz: true,
-      certificate: true
+      certificate: false
     }
   ];
 
@@ -113,12 +113,6 @@ export const InteractiveTraining = () => {
                       <Badge variant="outline" className="text-xs">
                         <FileText className="w-3 h-3 mr-1" />
                         Quiz
-                      </Badge>
-                    )}
-                    {module.certificate && (
-                      <Badge variant="outline" className="text-xs">
-                        <Award className="w-3 h-3 mr-1" />
-                        Certificat
                       </Badge>
                     )}
                   </div>
@@ -205,34 +199,6 @@ export const InteractiveTraining = () => {
         </CardContent>
       </Card>
 
-      {/* Certificats obtenus */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Award className="w-5 h-5" />
-            <span>Mes Certificats</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 border rounded-lg">
-              <Award className="w-12 h-12 mx-auto text-yellow-500 mb-2" />
-              <h4 className="font-medium">Expert Hydroponie</h4>
-              <p className="text-sm text-gray-600">Obtenu le 15/01/2024</p>
-            </div>
-            <div className="text-center p-4 border rounded-lg opacity-50">
-              <Award className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-              <h4 className="font-medium">Maître Nutrition</h4>
-              <p className="text-sm text-gray-600">En cours...</p>
-            </div>
-            <div className="text-center p-4 border rounded-lg opacity-50">
-              <Award className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-              <h4 className="font-medium">Spécialiste Éclairage</h4>
-              <p className="text-sm text-gray-600">Pas encore démarré</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
