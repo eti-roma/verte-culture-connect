@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthForm from "@/components/AuthForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSEO } from "@/hooks/useSEO";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Auth = () => {
@@ -11,6 +12,12 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  
+  useSEO({
+    title: "Connexion - HydroFourrage Pro",
+    description: "Connectez-vous à HydroFourrage Pro pour accéder à votre tableau de bord de production hydroponique intelligent",
+    canonical: `${window.location.origin}/auth`
+  });
   
   const mode = searchParams.get('mode');
 

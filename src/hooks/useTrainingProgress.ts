@@ -19,10 +19,19 @@ export const useModuleCompletion = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return { totalModules: 4, completedModules: 0 };
 
-      // Simuler la progression pour éviter les erreurs de type
+      const { data: modules } = await supabase
+        .from('training_modules')
+        .select('id');
+      
+      const { data: progress } = await supabase
+        .from('training_progress')
+        .select('module_id')
+        .eq('user_id', user.id)
+        .eq('progress_percentage', 100);
+
       return {
-        totalModules: 4,
-        completedModules: Math.floor(Math.random() * 3) + 1 // 1-3 modules complétés
+        totalModules: modules?.length || 4,
+        completedModules: progress?.length || 0
       };
     },
   });
@@ -35,11 +44,38 @@ export const useTrainingProgress = (moduleId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Simuler la progression
-      return {
-        progress_percentage: Math.floor(Math.random() * 100),
-        completed_at: null
-      };
+      if (moduleId === 'all') {
+        // Get overall completion statistics
+        const { data, error } = await supabase
+          .from('training_progress')
+          .select(`
+            *,
+            training_modules!training_progress_module_id_fkey (*)
+          `)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        const totalModules = 4; // From our sample data
+        const completedModules = data?.filter(p => p.progress_percentage === 100).length || 0;
+        
+        return {
+          totalModules,
+          completedModules,
+          progressData: data
+        };
+      }
+
+      // Get progress for specific module
+      const { data, error } = await supabase
+        .from('training_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('module_id', moduleId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
     },
   });
 };
@@ -56,8 +92,18 @@ export const useUpdateProgress = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Simuler la mise à jour de progression
-      console.log('Updating progress:', { moduleId, sectionId, progressPercentage });
+      const { error } = await supabase
+        .from('training_progress')
+        .upsert({
+          user_id: user.id,
+          module_id: moduleId,
+          section_id: sectionId,
+          progress_percentage: progressPercentage,
+          completed_at: progressPercentage === 100 ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
       return { success: true };
     },
     onSuccess: () => {

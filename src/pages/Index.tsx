@@ -15,6 +15,7 @@ import { DiagnosticChatbot } from '@/components/diseases/DiagnosticChatbot';
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSEO } from "@/hooks/useSEO";
 import { useNavigate } from "react-router-dom";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -28,6 +29,12 @@ const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslations();
+
+  useSEO({
+    title: `Tableau de bord - HydroFourrage Pro`,
+    description: "Tableau de bord intelligent pour la gestion de votre production de fourrage hydroponique avec suivi en temps réel et IA",
+    canonical: window.location.origin
+  });
 
   useEffect(() => {
     // Récupérer les informations de l'utilisateur

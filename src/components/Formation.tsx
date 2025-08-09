@@ -6,196 +6,104 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, User, GraduationCap, Library, ExternalLink, Play } from 'lucide-react';
 import { RealFormationModule } from './formation/RealFormationModule';
+import { TrainingPlayer } from './training/TrainingPlayer';
 import { useFormation } from '@/hooks/useFormation';
+import { useTrainingModules } from '@/hooks/useTrainingModules';
 import { useTrainingProgress } from '@/hooks/useTrainingProgress';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const Formation = () => {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
-  const { data: courses, isLoading } = useFormation();
-  const { data: moduleCompletion } = useTrainingProgress('all');
+  const { data: courses, isLoading: coursesLoading } = useFormation();
+  const { data: modules, isLoading: modulesLoading } = useTrainingModules();
+  const { data: overallProgress } = useTrainingProgress('all');
 
-  const modules = [
+  const isLoading = coursesLoading || modulesLoading;
+
+  // Use real modules from database or fallback to static ones
+  const displayModules = modules?.length ? modules : [
     {
       id: 'basics',
       title: 'Fondamentaux du Fourrage Hydroponique',
       description: 'Découvrez les principes de base de la culture hydroponique',
-      duration: '45 min',
-      level: 'Débutant',
-      lessons: 8,
-      content: [
-        'Introduction à l\'hydroponie',
-        'Choix des graines et variétés',
-        'Équipement nécessaire',
-        'Conditions environnementales',
-      ]
+      duration_minutes: 45,
+      order_index: 1
     },
     {
       id: 'setup',
       title: 'Installation et Configuration',
       description: 'Apprenez à installer votre système de production',
-      duration: '60 min',
-      level: 'Intermédiaire',
-      lessons: 12,
-      content: [
-        'Préparation de l\'espace',
-        'Installation du système d\'irrigation',
-        'Configuration de l\'éclairage',
-        'Mise en place du contrôle climatique',
-      ]
+      duration_minutes: 60,
+      order_index: 2
     },
     {
       id: 'production',
       title: 'Cycle de Production Complet',
       description: 'Maîtrisez tous les aspects de la production',
-      duration: '90 min',
-      level: 'Avancé',
-      lessons: 15,
-      content: [
-        'Semis et germination',
-        'Gestion des nutriments',
-        'Suivi quotidien',
-        'Récolte et post-récolte',
-      ]
+      duration_minutes: 90,
+      order_index: 3
     },
     {
       id: 'troubleshooting',
       title: 'Résolution de Problèmes',
       description: 'Identifiez et résolvez les problèmes courants',
-      duration: '30 min',
-      level: 'Expert',
-      lessons: 6,
-      content: [
-        'Maladies et parasites',
-        'Problèmes nutritionnels',
-        'Défaillances techniques',
-        'Optimisation des rendements',
-      ]
+      duration_minutes: 30,
+      order_index: 4
     }
   ];
 
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'Débutant': return 'bg-green-100 text-green-800';
-      case 'Intermédiaire': return 'bg-blue-100 text-blue-800';
-      case 'Avancé': return 'bg-orange-100 text-orange-800';
-      case 'Expert': return 'bg-red-100 text-red-800';
+  const getLevelColor = (orderIndex: number) => {
+    switch (orderIndex) {
+      case 1: return 'bg-green-100 text-green-800';
+      case 2: return 'bg-blue-100 text-blue-800';
+      case 3: return 'bg-orange-100 text-orange-800';
+      case 4: return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getLevelName = (orderIndex: number) => {
+    switch (orderIndex) {
+      case 1: return 'Débutant';
+      case 2: return 'Intermédiaire';
+      case 3: return 'Avancé';
+      case 4: return 'Expert';
+      default: return 'Débutant';
+    }
+  };
+
   // Obtenir les cours liés à un module
-  const getModuleCourses = (moduleId: string) => {
+  const getModuleCourses = (moduleTitle: string) => {
     if (!courses) return [];
-    // Mapper les IDs de modules aux noms de modules dans la base de données
-    const moduleMapping = {
-      'basics': 'Physiologie',
-      'setup': 'Environnement', 
-      'production': 'Nutrition',
-      'troubleshooting': 'Maladies'
+    // Mapper les titres de modules aux noms de modules dans la base de données
+    const moduleMapping: Record<string, string> = {
+      'Fondamentaux du Fourrage Hydroponique': 'Physiologie',
+      'Installation et Configuration': 'Environnement', 
+      'Cycle de Production Complet': 'Nutrition',
+      'Résolution de Problèmes': 'Maladies'
     };
-    const moduleName = moduleMapping[moduleId as keyof typeof moduleMapping];
-    return courses.filter(course => course.module === moduleName);
+    const moduleName = moduleMapping[moduleTitle];
+    return moduleName ? courses.filter(course => course.module === moduleName) : [];
+  };
+
+  const getModuleProgress = (moduleId: string) => {
+    if (!overallProgress || !('progressData' in overallProgress) || !overallProgress.progressData) return 0;
+    const moduleProgress = overallProgress.progressData.filter(p => p.module_id === moduleId);
+    if (moduleProgress.length === 0) return 0;
+    const totalProgress = moduleProgress.reduce((sum, p) => sum + p.progress_percentage, 0);
+    return Math.round(totalProgress / moduleProgress.length);
   };
 
   if (selectedModule) {
-    const module = modules.find(m => m.id === selectedModule);
-    const moduleCourses = getModuleCourses(selectedModule);
-    const progress = Math.floor(Math.random() * 100); // Simulation de progression
-
+    const module = displayModules.find(m => m.id === selectedModule);
+    if (!module) return null;
+    
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            onClick={() => setSelectedModule(null)}
-            className="text-green-600 hover:text-green-700"
-          >
-            ← Retour aux modules
-          </Button>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <BookOpen className="w-6 h-6 text-green-600" />
-              <div>
-                <CardTitle className="text-2xl">{module?.title}</CardTitle>
-                <CardDescription className="text-lg">{module?.description}</CardDescription>
-              </div>
-            </div>
-            <div className="flex space-x-2 mt-4">
-              <Badge className={getLevelColor(module?.level || '')}>
-                {module?.level}
-              </Badge>
-              <Badge variant="outline">{module?.duration}</Badge>
-              <Badge variant="outline">{module?.lessons} leçons</Badge>
-            </div>
-            
-            {/* Barre de progression */}
-            <div className="mt-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progression</span>
-                <span>{progress}%</span>
-              </div>
-              <Progress value={progress} className="w-full" />
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Contenu du module :</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {module?.content.map((lesson, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                    <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <span className="text-gray-800">{lesson}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Cours disponibles pour ce module */}
-            {moduleCourses.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ressources complémentaires :</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {moduleCourses.map((course) => (
-                    <Card key={course.id} className="border border-green-200">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{course.title}</h4>
-                            {course.description && (
-                              <p className="text-sm text-gray-600 mt-1">{course.description}</p>
-                            )}
-                          </div>
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(course.url, '_blank', 'noopener,noreferrer')}
-                            className="ml-4"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Accéder
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
-              <Play className="w-4 h-4 mr-2" />
-              Commencer le Module
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <TrainingPlayer 
+        moduleId={selectedModule}
+        moduleTitle={module.title}
+        onBack={() => setSelectedModule(null)}
+      />
     );
   }
 
@@ -246,9 +154,11 @@ export const Formation = () => {
 
         <TabsContent value="interactive" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {modules.map((module) => {
-              const moduleCourses = getModuleCourses(module.id);
-              const progress = Math.floor(Math.random() * 100); // Simulation
+            {displayModules.map((module) => {
+              const moduleCourses = getModuleCourses(module.title);
+              const progress = getModuleProgress(module.id);
+              const levelName = getLevelName(module.order_index);
+              const durationText = `${module.duration_minutes} min`;
               
               return (
                 <Card 
@@ -269,14 +179,14 @@ export const Formation = () => {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-4">
-                      <Badge className={getLevelColor(module.level)}>
-                        {module.level}
+                      <Badge className={getLevelColor(module.order_index)}>
+                        {levelName}
                       </Badge>
                       <Badge variant="outline" className="flex items-center space-x-1">
                         <User className="w-3 h-3" />
-                        <span>{module.lessons} leçons</span>
+                        <span>4 leçons</span>
                       </Badge>
-                      <Badge variant="outline">{module.duration}</Badge>
+                      <Badge variant="outline">{durationText}</Badge>
                       {moduleCourses.length > 0 && (
                         <Badge variant="secondary">
                           +{moduleCourses.length} ressources
