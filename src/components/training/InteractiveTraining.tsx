@@ -172,10 +172,26 @@ export const InteractiveTraining = () => {
             <div className="flex justify-between items-center">
               <Progress value={((currentQuiz + 1) / quizQuestions.length) * 100} className="flex-1 mr-4" />
               <Button 
-                onClick={() => setShowResult(true)}
-                disabled={selectedAnswer === null}
+                onClick={() => {
+                  if (!showResult) {
+                    setShowResult(true);
+                  } else {
+                    // Passer à la question suivante
+                    if (currentQuiz < quizQuestions.length - 1) {
+                      setCurrentQuiz(currentQuiz + 1);
+                      setSelectedAnswer(null);
+                      setShowResult(false);
+                    } else {
+                      // Quiz terminé
+                      setCurrentQuiz(0);
+                      setSelectedAnswer(null);
+                      setShowResult(false);
+                    }
+                  }
+                }}
+                disabled={selectedAnswer === null && !showResult}
               >
-                Valider
+                {!showResult ? 'Valider' : (currentQuiz < quizQuestions.length - 1 ? 'Question suivante' : 'Recommencer')}
               </Button>
             </div>
 

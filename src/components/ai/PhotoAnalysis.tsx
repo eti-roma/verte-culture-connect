@@ -18,21 +18,35 @@ export const PhotoAnalysis = () => {
     setAnalyzing(true);
     setProgress(0);
 
-    // Simulation de l'analyse IA
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setAnalyzing(false);
-          toast({
-            title: "Analyse terminée",
-            description: "Vos plantes sont en bonne santé ! Score: 85/100",
-          });
-          return 100;
-        }
-        return prev + 10;
+    try {
+      // Simulation de l'analyse IA améliorée
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setAnalyzing(false);
+            
+            // Simulation d'analyse aléatoire
+            const healthScore = Math.floor(Math.random() * 30 + 70);
+            const issues = healthScore < 80 ? ['Carence nutritionnelle détectée'] : [];
+            
+            toast({
+              title: "Analyse terminée !",
+              description: `Score de santé: ${healthScore}/100${issues.length > 0 ? ' - ' + issues[0] : ' - Plantes en excellente santé!'}`,
+            });
+            return 100;
+          }
+          return prev + 12;
+        });
+      }, 150);
+    } catch (error) {
+      setAnalyzing(false);
+      toast({
+        title: "Erreur d'analyse",
+        description: "Impossible d'analyser l'image. Veuillez réessayer.",
+        variant: "destructive"
       });
-    }, 200);
+    }
   };
 
   const analysisHistory = [

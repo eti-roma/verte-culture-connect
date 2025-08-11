@@ -236,6 +236,27 @@ export const DiseasesPests = () => {
               </div>
 
               <div className="flex space-x-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="problem-photo"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      // Traitement de l'image
+                      console.log('Photo sélectionnée:', file.name);
+                    }
+                  }}
+                />
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('problem-photo')?.click()}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Ajouter une photo
+                </Button>
                 <Button 
                   type="submit" 
                   className="bg-red-500 hover:bg-red-600"
